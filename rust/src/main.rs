@@ -2,7 +2,6 @@ use std::env;
 use std::fs;
 
 fn main() {
-    println!("Hello, world!");
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
     let contents = fs::read_to_string(filename)
@@ -10,5 +9,5 @@ fn main() {
     println!("BF code:\n{}",contents);
 }
 fn processBF(filename: char){
-
+    
 }
