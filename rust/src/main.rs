@@ -20,13 +20,25 @@ fn process_bf(args: Vec<String>){
     let filename = &args[1];
     let file_contents = fs::read_to_string(filename)
         .expect("Something went wrong reading the file");
-    println!("BF code:\n{}",file_contents);
+    //println!("BF code:\n{}",file_contents);
     let code_pre: Vec<char> = file_contents.chars().collect();
-    let regex_code = Regex::new("~[[]<>+-.,,]~").unwrap();
+    let mut code_post: Vec<char> = vec![];
+    
+    code_post = regex_scan(code_pre);
+    let code_print: String  = code_post.into_iter().collect();
+    println!("Code post scaning: {}",code_print);
+}
+fn regex_scan(code_pre: Vec<char>) -> Vec<char>{
+    let regex_code = Regex::new("^[\\[\\]<>+-.,,]$").unwrap();
+    let mut code_post = vec![];
     for i in 0..code_pre.len(){
         let current_char = code_pre[i];
-        assert!(regex_code.is_match(current_char));
+        if regex_code.is_match(current_char.encode_utf8(&mut [4])){
+            code_post.push(current_char);
+        }
+        
     }
+    return code_post;
 }
 
 fn throw_error(error_code: i32,message: std::string::String){
