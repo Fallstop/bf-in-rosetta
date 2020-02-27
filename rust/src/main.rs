@@ -3,7 +3,7 @@ use std::fs;
 use regex::Regex;
 use std::process;
 
-
+const period: char = ;
 
 fn main() {
     
@@ -51,7 +51,8 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>){
     let mut memory: Vec<i64> = vec!();
     let mut code_pointer: usize = 0;
     while code_pointer < code.len() as usize{
-        match code[code_pointer] {
+        let code_char: char = code[code_pointer];
+        match code_char {
             "." => println!(". has been found"),
             _ => println!("bf symbole not reconised"),
 
