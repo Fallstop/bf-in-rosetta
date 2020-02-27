@@ -25,7 +25,7 @@ fn process_bf(args: Vec<String>){
         .expect("Something went wrong reading the file");
     //println!("BF code:\n{}",file_contents);
     let code_pre: Vec<char> = file_contents.chars().collect();
-    let mut code_post: Vec<char> = vec![];
+    let code_post: Vec<char>;
     
     code_post = match_braces(regex_scan(code_pre));
     let code_print: String  = code_post.into_iter().collect();
