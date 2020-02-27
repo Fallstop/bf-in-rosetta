@@ -9,13 +9,19 @@ fn main() {
     
     println!("\n\nRunning\n");
     let args: Vec<String> = env::args().collect();
-    process_bf(args);
+    let code: Vec<char> = process_bf(&args);
+    println!("Code post scaning: {:?}",code);
+    let inputs: Vec<i64>;
+    inputs = get_inputs(&code,&args);
+    let braces: Vec<Vec<i32>>;
+    braces = match_braces(&code);
+    run_bf(code,braces,inputs);
     
 }
 
-fn process_bf(args: Vec<String>){
-    if args.len() != 2  {
-        println!("How to use: main [filename]");
+fn process_bf(args: &Vec<String>) -> Vec<char>{
+    if args.len() < 2  {
+        println!("How to use: main [filename] [inputs]");
         let error_message = format!("Args not correct, 1 expected, {} recived", args.len());
         throw_error(10, error_message);
         
@@ -26,10 +32,11 @@ fn process_bf(args: Vec<String>){
     //println!("BF code:\n{}",file_contents);
     let code_pre: Vec<char> = file_contents.chars().collect();
     let code_post: Vec<char>;
-   
-    code_post = match_braces(regex_scan(code_pre));
-    let code_print: String  = code_post.into_iter().collect();
-    println!("Code post scaning: {}",code_print);
+    
+    code_post = regex_scan(code_pre);
+    
+
+    return code_post;
 
     
 }
@@ -46,21 +53,40 @@ fn regex_scan(code_pre: Vec<char>) -> Vec<char>{
     return code_post;
 }
 
-fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>){
+fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
     println!("Running bf code");
-    let mut memory: Vec<i64> = vec!();
+    let mut memory: Vec<i64> = vec!(0);
+    let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
+    let mut inputs_pointer: usize = 0;
     while code_pointer < code.len() as usize{
         let code_char: char = code[code_pointer];
         match code_char {
-            '.' => println!(". has been found"),
+            '.' => {println!("{}",memory[memory_pointer]); },
+            ',' => {memory[memory_pointer] = inputs[inputs_pointer]; inputs_pointer +=1;},
+            '>' => memory_pointer+=1,
+            '<' => memory_pointer-=1,
+            '+' => memory[memory_pointer] += 1,
+            '-' => memory[memory_pointer] -= 1,
             _ => println!("bf symbole not reconised"),
 
 		}
+        code_pointer+=1;
+        if memory_pointer >memory.len()-1{
+            memory.push(0);  
+		}
+        
 	}
 }
-
-fn match_braces(code_post: Vec<char>)-> Vec<char>{
+fn get_inputs(code: &Vec<char>,args: &Vec<String>)-> Vec<i64>{
+    let mut inputs: Vec<i64> = vec![];
+    for i in 2..args.len(){
+        inputs.push(args[i].parse::<i64>().unwrap());
+	}
+    println!("Inputs: {:?}",inputs);
+    return inputs;
+}
+fn match_braces(code_post: &Vec<char>)-> Vec<Vec<i32>>{
     let mut nested_level: i32 = 0;
     let mut bracket_link: Vec<Vec<i32>> = vec!(vec!());
     for i in 0..code_post.len(){
@@ -90,7 +116,7 @@ fn match_braces(code_post: Vec<char>)-> Vec<char>{
     }
     println!("{}",bracket_link[2][2]);
     println!("{:?}",bracket_link);
-    return code_post;
+    return bracket_link;
 }
 
 fn throw_error(error_code: i32,message: std::string::String){
