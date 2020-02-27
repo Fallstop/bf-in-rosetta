@@ -3,7 +3,7 @@ use std::fs;
 use regex::Regex;
 use std::process;
 
-const period: char = ;
+const period: char = '.';
 
 fn main() {
     
@@ -53,7 +53,7 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>){
     while code_pointer < code.len() as usize{
         let code_char: char = code[code_pointer];
         match code_char {
-            "." => println!(". has been found"),
+            '.' => println!(". has been found"),
             _ => println!("bf symbole not reconised"),
 
 		}
