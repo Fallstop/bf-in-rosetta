@@ -2,8 +2,8 @@ use std::env;
 use std::fs;
 use regex::Regex;
 use std::process;
+use std::{thread, time};
 
-const period: char = '.';
 
 fn main() {
     
@@ -59,31 +59,36 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
-    println!("{}",braces.len());
-    while code_pointer < code.len() -1  as usize{
+    let mut output: Vec<i64> = vec!();
+    while code_pointer < code.len()  as usize{
         let code_char: char = code[code_pointer];
-        
         match code_char {
-            '.' => {println!("{}",memory[memory_pointer]); },
-            ',' => {memory[memory_pointer] = inputs[inputs_pointer]; inputs_pointer +=1;},
+            '.' => {println!("{}",memory[memory_pointer]); output.push(memory[memory_pointer])},
+            ',' => {memory[memory_pointer] = inputs[inputs_pointer]; inputs_pointer +=1; },
             '>' => memory_pointer+=1,
             '<' => memory_pointer-=1,
             '+' => memory[memory_pointer] += 1,
             '-' => memory[memory_pointer] -= 1,
             ']' => {
-                    println!("Got to right bracket");
-                    if memory[memory_pointer] != 0{
+ 
+
+                    if memory[memory_pointer] != 0 {
                         code_pointer = braces[code_pointer][2] as usize;
-                }},
-            _ => println!("Skiped {}",code_char),
+                        
+                    }
+                    
+                },
+            _ => (),
 
 		}
         code_pointer+=1;
         while memory_pointer >= memory.len()-1{
             memory.push(0);  
-		}
+        }
+        //thread::sleep(time::Duration::from_millis(50));
         
-	}
+    }
+    println!("Full output: {:?}",output)
 }
 fn get_inputs(code: &Vec<char>,args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
@@ -95,20 +100,22 @@ fn get_inputs(code: &Vec<char>,args: &Vec<String>)-> Vec<i64>{
 }
 fn match_braces(code_post: &Vec<char>)-> Vec<Vec<i32>>{
     let mut nested_level: i32 = 0;
-    let mut bracket_left: Vec<Vec<i32>> = vec!(vec!());
-    let mut bracket_right: Vec<Vec<i32>> = vec!(vec!());
+    let mut bracket_left: Vec<Vec<i32>> = vec!();
+    let mut bracket_right: Vec<Vec<i32>> = vec!();
     for i in 0..code_post.len(){
+        println!("{}",i);
         if code_post[i].encode_utf8(&mut [1]) == "["{
             nested_level -=- 1;
             println!("Found Left braket, nested level: {}, the charcture location is {}",nested_level,i);
             bracket_left.push(vec!(0,nested_level,i as i32));
+            bracket_right.push(vec!(i as i32,nested_level,0));
         }
         else if code_post[i].encode_utf8(&mut [1]) == "]"{
             
             println!("Found Right braket, nested level: {}",nested_level);
             let mut x: usize =  bracket_left.len() -1;
             
-            'scan_for_match: while x > 0{
+            'scan_for_match: while x >= 0{
                 if  bracket_left[x][1] == nested_level{
                     bracket_right.push(vec!(i as i32,nested_level,bracket_left[x][2]));
                     
