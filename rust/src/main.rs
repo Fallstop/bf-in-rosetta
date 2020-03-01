@@ -14,6 +14,7 @@ fn main() {
     inputs = get_inputs(&args);
     let braces: Vec<Vec<i32>>;
     braces = match_braces(&code);
+    macro_scan(&code);
     run_bf(code,braces,inputs);
     
 }
@@ -36,8 +37,21 @@ fn process_bf(args: &Vec<String>) -> Vec<char>{
     
 
     return code_post;
-
+}
+fn macro_scan(code: &Vec<char>){
     
+    let mut macro_list: Vec<u32>=vec!();
+    let mut char_list: Vec<char>=vec!('0','0','0');
+    for i in 1..code.len()-1{
+        char_list[0] = code[i-1];
+        char_list[1] = code[i];
+        char_list[2] = code[i+1];
+        
+        if equal_vec(&char_list){
+              println!("Found macro location");
+		}
+	}
+
 }
 fn regex_scan(code_pre: Vec<char>) -> Vec<char>{
     let regex_code = Regex::new("^[\\[\\]<>+-.,,]$").unwrap();
@@ -47,9 +61,11 @@ fn regex_scan(code_pre: Vec<char>) -> Vec<char>{
         if regex_code.is_match(current_char.encode_utf8(&mut [4])){
             code_post.push(current_char);
         }
-        
     }
     return code_post;
+}
+fn equal_vec(arr: &Vec<char>) -> bool {
+    arr.iter().min() == arr.iter().max()
 }
 
 fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
@@ -68,12 +84,9 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
             '<' => memory_pointer-=1,
             '+' => memory[memory_pointer] += 1,
             '-' => memory[memory_pointer] -= 1,
-            ']' => {
-                    if memory[memory_pointer] != 0 {
-                        code_pointer = braces[code_pointer][2] as usize;
-                        
-                    }
-                },
+            ']' => {if memory[memory_pointer] != 0 {
+                        code_pointer = braces[code_pointer][2] as usize;    
+                    }},
             _ => (),
 
 		}
@@ -82,7 +95,6 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
             memory.push(0);  
         }
         //thread::sleep(time::Duration::from_millis(50));
-        
     }
     println!("BF excution done");
 }
@@ -110,11 +122,7 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
             'scan_for_match: while x >= 0 {
                 if  bracket_left[x][1] == nested_level{
                     bracket_right.push(bracket_left[x][2]);
-                    
-                    //println!("{} {} {}",i,x,bracket_link[x][2]);
-
                     break 'scan_for_match;
-                    
 				}
                 x -= 1;
 			}
@@ -124,8 +132,6 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
             bracket_right.push(0); //Space filler, makes code running faster beacuse it elements find, and uses the code index as the array index
         }
     }
-    
-    
     return bracket_right;
 }
 
