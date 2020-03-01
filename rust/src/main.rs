@@ -10,12 +10,11 @@ fn main() {
     println!("\n\nRunning\n");
     let args: Vec<String> = env::args().collect();
     let code: Vec<char> = process_bf(&args);
-    let inputs: Vec<i64>;
-    inputs = get_inputs(&args);
-    let braces: Vec<Vec<i32>>;
-    braces = match_braces(&code);
-    macro_scan(&code);
-    run_bf(code,braces,inputs);
+    let inputs: Vec<i64> = get_inputs(&args);
+    let macro_code = macro_scan(&code);
+    println!("Origonal: \n {:?} \n\n vs macro\n {:?}",code,macro_code);
+    let braces: Vec<i32> = match_braces(&macro_code);
+    run_bf(macro_code,braces,inputs);
     
 }
 
@@ -38,19 +37,50 @@ fn process_bf(args: &Vec<String>) -> Vec<char>{
 
     return code_post;
 }
-fn macro_scan(code: &Vec<char>){
+fn macro_scan(code: &Vec<char>) -> Vec<char>{
     
-    let mut macro_list: Vec<u32>=vec!();
+    let mut code_macro: Vec<char>=vec!();
     let mut char_list: Vec<char>=vec!('0','0','0');
-    for i in 1..code.len()-1{
-        char_list[0] = code[i-1];
-        char_list[1] = code[i];
-        char_list[2] = code[i+1];
+    let mut i: usize=0;
+    
+    
+    while i < code.len()-3{
+        char_list[0] = code[i];
+        char_list[1] = code[i+1];
+        char_list[2] = code[i+2];
         
         if equal_vec(&char_list){
-              println!("Found macro location");
-		}
-	}
+            
+            println!("Found macro location at {}",i);
+            for x in 3..10{
+                if code[i+x] != code[i] || x==9{
+                    println!("Macro length: {}, type: {}",x,code[i]);
+                    let macro_type  = match code[i]{
+                        '>' => 'a',
+                        '<' => 'b',
+                        '+' => 'c',
+                        '-' => 'd',
+                         _ => 'z',
+                    };
+                    if macro_type == 'z'{break;}//Don't want to macro things like ",.[]"
+                    code_macro.push(macro_type);
+                    code_macro.push(x as u8 as char);
+                    i+=x;
+                    break;
+                }
+            }
+        }
+        else {
+            code_macro.push(code[i]);
+            i+=1;
+        }
+        
+    }
+    while code_macro.len() < code.len(){
+        code_macro.push(code[code.len()-code_macro.len()]);
+    }
+    println!("{:?}",code_macro);
+    return code_macro;
 
 }
 fn regex_scan(code_pre: Vec<char>) -> Vec<char>{
@@ -68,7 +98,7 @@ fn equal_vec(arr: &Vec<char>) -> bool {
     arr.iter().min() == arr.iter().max()
 }
 
-fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
+fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
     println!("Running bf code");
     let mut memory: Vec<i64> = vec!(0);
     let mut memory_pointer: usize = 0;
@@ -85,12 +115,17 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
             '+' => memory[memory_pointer] += 1,
             '-' => memory[memory_pointer] -= 1,
             ']' => {if memory[memory_pointer] != 0 {
-                        code_pointer = braces[code_pointer][2] as usize;    
+                        code_pointer = braces[code_pointer] as usize;    
                     }},
+            'a' => {code_pointer+=1; memory_pointer+=code[code_pointer] as usize; println!("Macro Found while running, >, skips {}",code[code_pointer] as usize); }, //>
+            'b' => {code_pointer+=1; memory_pointer-=code[code_pointer] as usize; println!("Macro Found while running, <, skips {}",code[code_pointer] as usize); }, //<
+            'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64; println!("Macro Found while running, +, skips {}",code[code_pointer] as i64); }, //+
+            'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; println!("Macro Found while running, -, skips {}",code[code_pointer] as i64); }, //-
             _ => (),
 
 		}
         code_pointer+=1;
+        println!("Code pointer at: {}",code_pointer);
         while memory_pointer >= memory.len()-1{
             memory.push(0);  
         }
@@ -113,15 +148,15 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
     for i in 0..code_post.len(){
         if code_post[i].encode_utf8(&mut [1]) == "["{
             nested_level += 1;
-            bracket_left.push(vec!(0,nested_level,i as i32));
+            bracket_left.push(vec!(nested_level,i as i32));
             bracket_right.push(i as i32);
         }
         else if code_post[i].encode_utf8(&mut [1]) == "]"{
             let mut x: usize =  bracket_left.len() -1;
             #[allow(unused_comparisons)]
             'scan_for_match: while x >= 0 {
-                if  bracket_left[x][1] == nested_level{
-                    bracket_right.push(bracket_left[x][2]);
+                if  bracket_left[x][0] == nested_level{
+                    bracket_right.push(bracket_left[x][1]);
                     break 'scan_for_match;
 				}
                 x -= 1;
