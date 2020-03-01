@@ -69,13 +69,10 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
             '+' => memory[memory_pointer] += 1,
             '-' => memory[memory_pointer] -= 1,
             ']' => {
- 
-
                     if memory[memory_pointer] != 0 {
                         code_pointer = braces[code_pointer][2] as usize;
                         
                     }
-                    
                 },
             _ => (),
 
@@ -97,22 +94,22 @@ fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     println!("Inputs: {:?}",inputs);
     return inputs;
 }
-fn match_braces(code_post: &Vec<char>)-> Vec<Vec<i32>>{
+fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
     let mut nested_level: i32 = 0;
     let mut bracket_left: Vec<Vec<i32>> = vec!();
-    let mut bracket_right: Vec<Vec<i32>> = vec!();
+    let mut bracket_right: Vec<i32> = vec!();
     for i in 0..code_post.len(){
         if code_post[i].encode_utf8(&mut [1]) == "["{
             nested_level += 1;
             bracket_left.push(vec!(0,nested_level,i as i32));
-            bracket_right.push(vec!(i as i32,nested_level,0));
+            bracket_right.push(i as i32);
         }
         else if code_post[i].encode_utf8(&mut [1]) == "]"{
             let mut x: usize =  bracket_left.len() -1;
             #[allow(unused_comparisons)]
             'scan_for_match: while x >= 0 {
                 if  bracket_left[x][1] == nested_level{
-                    bracket_right.push(vec!(i as i32,nested_level,bracket_left[x][2]));
+                    bracket_right.push(bracket_left[x][2]);
                     
                     //println!("{} {} {}",i,x,bracket_link[x][2]);
 
@@ -124,7 +121,7 @@ fn match_braces(code_post: &Vec<char>)-> Vec<Vec<i32>>{
             nested_level -= 1;
         }
         else{
-            bracket_right.push(vec!(i as i32,nested_level,0)); //Space filler, makes code running faster beacuse it elements find, and uses the code index as the array index
+            bracket_right.push(0); //Space filler, makes code running faster beacuse it elements find, and uses the code index as the array index
         }
     }
     
