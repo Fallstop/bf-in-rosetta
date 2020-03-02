@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use regex::Regex;
 use std::process;
-use std::{thread, time};
+//use std::{thread, time};
 
 
 fn main() {
@@ -10,12 +10,10 @@ fn main() {
     println!("\n\nRunning\n");
     let args: Vec<String> = env::args().collect();
     let code: Vec<char> = process_bf(&args);
-    println!("Code post scaning: {:?}",code);
-    let inputs: Vec<i64>;
-    inputs = get_inputs(&code,&args);
-    let braces: Vec<Vec<i32>>;
-    braces = match_braces(&code);
-    run_bf(code,braces,inputs);
+    let inputs: Vec<i64> = get_inputs(&args);
+    let macro_code = macro_scan(&code);
+    let braces: Vec<i32> = match_braces(&macro_code);
+    run_bf(macro_code,braces,inputs);
     
 }
 
@@ -37,8 +35,49 @@ fn process_bf(args: &Vec<String>) -> Vec<char>{
     
 
     return code_post;
-
+}
+fn macro_scan(code: &Vec<char>) -> Vec<char>{
     
+    let mut code_macro: Vec<char>=vec!();
+    let mut char_list: Vec<char>=vec!('0','0','0');
+    let mut i: usize=0;
+    
+    while i < code.len()-3{
+        char_list[0] = code[i];
+        char_list[1] = code[i+1];
+        char_list[2] = code[i+2];
+        if equal_vec(&char_list){
+            for x in 3..10{
+                if code[i+x] != code[i] || x==255{
+                    let macro_type  = match code[i]{
+                        '>' => 'a',
+                        '<' => 'b',
+                        '+' => 'c',
+                        '-' => 'd',
+                         _ => 'z',
+                    };
+                    if macro_type == 'z'{code_macro.push(code[i]);break;}//Don't want to macro things like ",.[]"
+                    code_macro.push(macro_type);
+                    code_macro.push(x as u8 as char);
+                    i+=x;
+                    break;
+                }
+            }
+        }
+        else {
+            code_macro.push(code[i]);
+            
+            i+=1;
+        }
+        
+    }
+    while i < code.len(){
+        code_macro.push(code[i]);
+        i+=1;
+    }
+    
+    return code_macro;
+
 }
 fn regex_scan(code_pre: Vec<char>) -> Vec<char>{
     let regex_code = Regex::new("^[\\[\\]<>+-.,,]$").unwrap();
@@ -48,36 +87,36 @@ fn regex_scan(code_pre: Vec<char>) -> Vec<char>{
         if regex_code.is_match(current_char.encode_utf8(&mut [4])){
             code_post.push(current_char);
         }
-        
     }
     return code_post;
 }
+fn equal_vec(arr: &Vec<char>) -> bool {
+    arr.iter().min() == arr.iter().max()
+}
 
-fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
+fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
     println!("Running bf code");
     let mut memory: Vec<i64> = vec!(0);
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
-    let mut output: Vec<i64> = vec!();
+    
     while code_pointer < code.len()  as usize{
         let code_char: char = code[code_pointer];
         match code_char {
-            '.' => {println!("{}",memory[memory_pointer]); output.push(memory[memory_pointer])},
+            '.' => println!("{}",memory[memory_pointer]),
             ',' => {memory[memory_pointer] = inputs[inputs_pointer]; inputs_pointer +=1; },
             '>' => memory_pointer+=1,
             '<' => memory_pointer-=1,
             '+' => memory[memory_pointer] += 1,
             '-' => memory[memory_pointer] -= 1,
-            ']' => {
- 
-
-                    if memory[memory_pointer] != 0 {
-                        code_pointer = braces[code_pointer][2] as usize;
-                        
-                    }
-                    
-                },
+            ']' => {if memory[memory_pointer] != 0 {
+                        code_pointer = braces[code_pointer] as usize;    
+                    }},
+            'a' => {code_pointer+=1; memory_pointer+=code[code_pointer] as usize; }, //>
+            'b' => {code_pointer+=1; memory_pointer-=code[code_pointer] as usize; }, //<
+            'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64; println!("Macro Found while running, +, skips {}",code[code_pointer] as i64); }, //+
+            'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; println!("Macro Found while running, -, skips {}",code[code_pointer] as i64); }, //-
             _ => (),
 
 		}
@@ -86,11 +125,10 @@ fn run_bf(code: Vec<char>,braces: Vec<Vec<i32>>,inputs: Vec<i64>){
             memory.push(0);  
         }
         //thread::sleep(time::Duration::from_millis(50));
-        
     }
-    println!("Full output: {:?}",output)
+    println!("BF excution done");
 }
-fn get_inputs(code: &Vec<char>,args: &Vec<String>)-> Vec<i64>{
+fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
     for i in 2..args.len(){
         inputs.push(args[i].parse::<i64>().unwrap());
@@ -98,42 +136,32 @@ fn get_inputs(code: &Vec<char>,args: &Vec<String>)-> Vec<i64>{
     println!("Inputs: {:?}",inputs);
     return inputs;
 }
-fn match_braces(code_post: &Vec<char>)-> Vec<Vec<i32>>{
+fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
     let mut nested_level: i32 = 0;
     let mut bracket_left: Vec<Vec<i32>> = vec!();
-    let mut bracket_right: Vec<Vec<i32>> = vec!();
+    let mut bracket_right: Vec<i32> = vec!();
     for i in 0..code_post.len(){
-        println!("{}",i);
         if code_post[i].encode_utf8(&mut [1]) == "["{
-            nested_level -=- 1;
-            println!("Found Left braket, nested level: {}, the charcture location is {}",nested_level,i);
-            bracket_left.push(vec!(0,nested_level,i as i32));
-            bracket_right.push(vec!(i as i32,nested_level,0));
+            nested_level += 1;
+            bracket_left.push(vec!(nested_level,i as i32));
+            bracket_right.push(i as i32);
         }
         else if code_post[i].encode_utf8(&mut [1]) == "]"{
-            
-            println!("Found Right braket, nested level: {}",nested_level);
             let mut x: usize =  bracket_left.len() -1;
-            
-            'scan_for_match: while x >= 0{
-                if  bracket_left[x][1] == nested_level{
-                    bracket_right.push(vec!(i as i32,nested_level,bracket_left[x][2]));
-                    
-                    //println!("{} {} {}",i,x,bracket_link[x][2]);
-
+            #[allow(unused_comparisons)]
+            'scan_for_match: while x >= 0 {
+                if  bracket_left[x][0] == nested_level{
+                    bracket_right.push(bracket_left[x][1]);
                     break 'scan_for_match;
-                    
 				}
                 x -= 1;
 			}
             nested_level -= 1;
         }
         else{
-            bracket_right.push(vec!(i as i32,nested_level,0)); //Space filler, makes code running faster beacuse it elements find, and uses the code index as the array index
+            bracket_right.push(0); //Space filler, makes code running faster beacuse it elements find, and uses the code index as the array index
         }
     }
-    
-    println!("{:?}",bracket_right);
     return bracket_right;
 }
 
