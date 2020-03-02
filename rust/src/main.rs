@@ -12,7 +12,6 @@ fn main() {
     let code: Vec<char> = process_bf(&args);
     let inputs: Vec<i64> = get_inputs(&args);
     let macro_code = macro_scan(&code);
-    println!("Origonal: \n {:?} \n\n vs macro\n {:?}",code,macro_code);
     let braces: Vec<i32> = match_braces(&macro_code);
     run_bf(macro_code,braces,inputs);
     
@@ -43,18 +42,13 @@ fn macro_scan(code: &Vec<char>) -> Vec<char>{
     let mut char_list: Vec<char>=vec!('0','0','0');
     let mut i: usize=0;
     
-    
     while i < code.len()-3{
         char_list[0] = code[i];
         char_list[1] = code[i+1];
         char_list[2] = code[i+2];
-        
         if equal_vec(&char_list){
-            
-            println!("Found macro location at {}",i);
             for x in 3..10{
-                if code[i+x] != code[i] || x==9{
-                    println!("Macro length: {}, type: {}",x,code[i]);
+                if code[i+x] != code[i] || x==255{
                     let macro_type  = match code[i]{
                         '>' => 'a',
                         '<' => 'b',
@@ -62,7 +56,7 @@ fn macro_scan(code: &Vec<char>) -> Vec<char>{
                         '-' => 'd',
                          _ => 'z',
                     };
-                    if macro_type == 'z'{break;}//Don't want to macro things like ",.[]"
+                    if macro_type == 'z'{code_macro.push(code[i]);break;}//Don't want to macro things like ",.[]"
                     code_macro.push(macro_type);
                     code_macro.push(x as u8 as char);
                     i+=x;
@@ -72,14 +66,16 @@ fn macro_scan(code: &Vec<char>) -> Vec<char>{
         }
         else {
             code_macro.push(code[i]);
+            
             i+=1;
         }
         
     }
-    while code_macro.len() < code.len(){
-        code_macro.push(code[code.len()-code_macro.len()]);
+    while i < code.len(){
+        code_macro.push(code[i]);
+        i+=1;
     }
-    println!("{:?}",code_macro);
+    
     return code_macro;
 
 }
@@ -117,15 +113,14 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
             ']' => {if memory[memory_pointer] != 0 {
                         code_pointer = braces[code_pointer] as usize;    
                     }},
-            'a' => {code_pointer+=1; memory_pointer+=code[code_pointer] as usize; println!("Macro Found while running, >, skips {}",code[code_pointer] as usize); }, //>
-            'b' => {code_pointer+=1; memory_pointer-=code[code_pointer] as usize; println!("Macro Found while running, <, skips {}",code[code_pointer] as usize); }, //<
+            'a' => {code_pointer+=1; memory_pointer+=code[code_pointer] as usize; }, //>
+            'b' => {code_pointer+=1; memory_pointer-=code[code_pointer] as usize; }, //<
             'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64; println!("Macro Found while running, +, skips {}",code[code_pointer] as i64); }, //+
             'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; println!("Macro Found while running, -, skips {}",code[code_pointer] as i64); }, //-
             _ => (),
 
 		}
         code_pointer+=1;
-        println!("Code pointer at: {}",code_pointer);
         while memory_pointer >= memory.len()-1{
             memory.push(0);  
         }
