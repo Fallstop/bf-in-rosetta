@@ -141,12 +141,12 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
     let mut bracket_left: Vec<Vec<i32>> = vec!();
     let mut bracket_right: Vec<i32> = vec!();
     for i in 0..code_post.len(){
-        if code_post[i].encode_utf8(&mut [1]) == "["{
+        if code_post[i] == '['{
             nested_level += 1;
             bracket_left.push(vec!(nested_level,i as i32));
             bracket_right.push(i as i32);
         }
-        else if code_post[i].encode_utf8(&mut [1]) == "]"{
+        else if code_post[i] == ']'{
             let mut x: usize =  bracket_left.len() -1;
             #[allow(unused_comparisons)]
             'scan_for_match: while x >= 0 {
