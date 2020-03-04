@@ -2,11 +2,12 @@ use std::env;
 use std::fs;
 use regex::Regex;
 use std::process;
+use std::time::Instant;
 //use std::{thread, time};
 
 
 fn main() {
-    
+    let StartTime = Instant::now();
     println!("\n\nRunning\n");
     let args: Vec<String> = env::args().collect();
     let code: Vec<char> = process_bf(&args);
@@ -14,12 +15,14 @@ fn main() {
     let macro_code = macro_scan(&code);
     let braces: Vec<i32> = match_braces(&macro_code);
     run_bf(macro_code,braces,inputs);
-    
+    let elapsed = StartTime.elapsed();
+    println!("Time taken: {:.2?}", elapsed);
 }
 
 fn process_bf(args: &Vec<String>) -> Vec<char>{
     if args.len() < 2  {
-        println!("How to use: main [filename] [inputs]");
+        println!("How to use: main <filename> [inputs]");
+        println!("The interpretor takes the file as the code input,\n then the inputs are used as the program runs. \nAlso, the interprter outputs in decimal");
         let error_message = format!("Args not correct, 1 expected, {} recived", args.len());
         throw_error(10, error_message);
         
@@ -107,16 +110,16 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
             '.' => println!("{}",memory[memory_pointer]),
             ',' => {memory[memory_pointer] = inputs[inputs_pointer]; inputs_pointer +=1; },
             '>' => memory_pointer+=1,
-            '<' => memory_pointer-=1,
+            '<' => {if memory_pointer != 0{memory_pointer-=1}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"))}},
             '+' => memory[memory_pointer] += 1,
             '-' => memory[memory_pointer] -= 1,
             ']' => {if memory[memory_pointer] != 0 {
                         code_pointer = braces[code_pointer] as usize;    
                     }},
             'a' => {code_pointer+=1; memory_pointer+=code[code_pointer] as usize; }, //>
-            'b' => {code_pointer+=1; memory_pointer-=code[code_pointer] as usize; }, //<
-            'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64; println!("Macro Found while running, +, skips {}",code[code_pointer] as i64); }, //+
-            'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; println!("Macro Found while running, -, skips {}",code[code_pointer] as i64); }, //-
+            'b' => {code_pointer+=1; if memory_pointer != code[code_pointer] as usize-1{memory_pointer-=code[code_pointer] as usize;}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"))} }, //<
+            'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64;}, //+
+            'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; }, //-
             _ => (),
 
 		}
@@ -124,14 +127,20 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
         while memory_pointer >= memory.len()-1{
             memory.push(0);  
         }
-        //thread::sleep(time::Duration::from_millis(50));
+        
     }
     println!("BF excution done");
 }
 fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
     for i in 2..args.len(){
-        inputs.push(args[i].parse::<i64>().unwrap());
+        if !args[i].parse::<i64>().is_err(){
+            inputs.push(args[i].parse::<i64>().unwrap());
+        }
+        else{
+            throw_error(5,String::from(format!("Input {} is not a number (i64)",i-1)));
+        }
+        
 	}
     println!("Inputs: {:?}",inputs);
     return inputs;
@@ -159,7 +168,7 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
             nested_level -= 1;
         }
         else{
-            bracket_right.push(0); //Space filler, makes code running faster beacuse it elements find, and uses the code index as the array index
+            bracket_right.push(0);
         }
     }
     return bracket_right;
@@ -167,7 +176,7 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
 
 fn throw_error(error_code: i32,message: std::string::String){
     println!("The program encounted a error:");
-    println!("Code: {} Message: {}",error_code,message);
+    println!("Code: {}, Message: {}",error_code,message);
     process::exit(error_code);
 }
 
