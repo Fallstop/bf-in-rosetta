@@ -2,19 +2,20 @@ use std::env;
 use std::fs;
 use regex::Regex;
 use std::process;
-//use std::{thread, time};
+use std::time::Instant;
 
 
 fn main() {
-    
+    let StartTime = Instant::now();
     println!("\n\nRunning\n");
     let args: Vec<String> = env::args().collect();
-    let code: Vec<char> = process_bf(&args);
-    let inputs: Vec<i64> = get_inputs(&args);
-    let macro_code = macro_scan(&code);
+    let code: Vec<char> = process_bf(&args); //Gets the bf code from the file and removes comments
+    let inputs: Vec<i64> = get_inputs(&args); //Gets the program inputs from command line
+    let macro_code = macro_scan(&code); //Condenses the same charcters 
     let braces: Vec<i32> = match_braces(&macro_code);
     run_bf(macro_code,braces,inputs);
-    
+    let elapsed = StartTime.elapsed();
+    println!("Time taken: {:.5?}", elapsed);
 }
 
 fn process_bf(args: &Vec<String>) -> Vec<char>{
@@ -27,7 +28,6 @@ fn process_bf(args: &Vec<String>) -> Vec<char>{
     let filename = &args[1];
     let file_contents = fs::read_to_string(filename)
         .expect("Something went wrong reading the file");
-    //println!("BF code:\n{}",file_contents);
     let code_pre: Vec<char> = file_contents.chars().collect();
     let code_post: Vec<char>;
     
