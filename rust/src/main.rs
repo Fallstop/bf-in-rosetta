@@ -6,15 +6,15 @@ use std::time::Instant;
 
 
 fn main() {
-    let StartTime = Instant::now();
+    let start_time = Instant::now();
     println!("\n\nRunning\n");
     let args: Vec<String> = env::args().collect();
     let code: Vec<char> = process_bf(&args); //Gets the bf code from the file and removes comments
     let inputs: Vec<i64> = get_inputs(&args); //Gets the program inputs from command line
-    let macro_code = macro_scan(&code); //Condenses the same charcters 
-    let braces: Vec<i32> = match_braces(&macro_code);
-    run_bf(macro_code,braces,inputs);
-    let elapsed = StartTime.elapsed();
+    let macro_code = macro_scan(&code); //Condenses repeated charcters in macros (Shortcuts) 
+    let braces: Vec<i32> = match_braces(&macro_code); //Matches the loops in the code
+    run_bf(macro_code,braces,inputs); //Steps through processed code
+    let elapsed = start_time.elapsed();
     println!("Time taken: {:.5?}", elapsed);
 }
 
