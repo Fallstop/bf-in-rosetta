@@ -19,7 +19,7 @@ except Exception as e:
     print()
     raise NameError("File {} could not be read, error: \n {}".format(fileName, e))
 
-print("BF code after processing", bfCode);
+print("BF code after processing", bfCode)
 
 #Logic for matching the loops
 

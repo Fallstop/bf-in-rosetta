@@ -18,12 +18,15 @@ fn main() {
     println!("Time taken: {:.5?}", elapsed);
 }
 
+
 fn process_bf(args: &Vec<String>) -> Vec<char>{
     if args.len() < 2  {
-        println!("How to use: main [filename] [inputs]");
-        let error_message = format!("Args not correct, 1 expected, {} recived", args.len());
+        println!("How to use: \n\tmain [filename] [inputs]");
+        println!("\tThere is no error checking for maxium speed.");
+        println!("\tIt is recomended to test with another tool,");
+        println!("\tThen blaze it with this 64 bit one");
+        let error_message = format!("Args not correct, 1 filename expected, {} recived", args.len());
         throw_error(10, error_message);
-        
     }
     let filename = &args[1];
     let file_contents = fs::read_to_string(filename)

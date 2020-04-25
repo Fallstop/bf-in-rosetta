@@ -1,5 +1,5 @@
 [package]
-name = "rust"
+name = "rust-bf"
 version = "0.1.0"
 authors = ["Fallstop <jasper@ngita.co.nz>"]
 edition = "2018"
