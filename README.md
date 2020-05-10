@@ -8,3 +8,4 @@ Currently complete languages
 - Scratch
 - Java
 - C#
+- Go

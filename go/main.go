@@ -23,6 +23,7 @@ const (
 var token_index = [...]string{"+", "-", ".", ",", "<", ">", "[", "]"}
 
 func parse(source string) []int {
+	fmt.Println("Parsing: ", source)
 	var list []int
 	for _, char := range source {
 		switch char {
@@ -54,6 +55,13 @@ func parse(source string) []int {
 			break
 		}
 	}
+	fmt.Print("Parsed source code: ")
+	for _, token := range list {
+		fmt.Print(token_index[token])
+	}
+
+	fmt.Print("\n")
+
 	return list
 }
 
@@ -84,6 +92,35 @@ func input() uint8 {
 		return input()
 	}
 	return uint8(i1)
+}
+
+func parseCsv(input string) []uint8 {
+	var numbers []uint8
+	var str string
+	for _, token := range input{
+		if token < 57 && token > 47 {
+			str += string(token)
+		} else if token == ',' {
+			if len(str) > 0 {
+				i, _ := strconv.ParseUint(str, 0, 8)
+				numbers = append(numbers, uint8(i))
+			}
+			str = ""
+		}
+	}
+
+	if len(str) > 0 {
+		i, _ := strconv.ParseUint(str, 0, 8)
+		numbers = append(numbers, uint8(i))
+	}
+
+	fmt.Print("Parsed: ")
+	for _, token := range numbers {
+		fmt.Print(token)
+	}
+	fmt.Println()
+
+	return numbers
 }
 
 func execute(source string) {
@@ -135,6 +172,64 @@ func execute(source string) {
 	}
 }
 
+func executeCsv(source string, inputs string) {
+	src := parse(source)
+	csv := parseCsv(inputs)
+	inputPointer := 0
+	memoryPointer := 0
+	const memorySize = 30000
+	var memory [memorySize]uint8
+	codePointer := 0
+	var braces []int
+	for codePointer < len(src) {
+		switch src[codePointer] {
+		case INC:
+			memory[memoryPointer]++
+			break
+		case DEC:
+			memory[memoryPointer]--
+			break
+		case IN:
+			if inputPointer < len(csv) {
+				memory[memoryPointer] = csv[inputPointer]
+				inputPointer++;
+			} else {
+				fmt.Println("Error: not enough inputs supplied in csv, falling back to on-demand input")
+				memory[memoryPointer] = input()
+			}
+			break
+		case OUT:
+			fmt.Println(memory[memoryPointer])
+			break
+		case SLF:
+			memoryPointer--
+			if memoryPointer < 0 {
+				memoryPointer = memorySize - 1
+			}
+		case SRT:
+			memoryPointer++
+			if memoryPointer > memorySize {
+				memoryPointer = 0
+			}
+		case SJP:
+			braces = append(braces, codePointer - 1)
+			break
+		case JNZ:
+			if memory[memoryPointer] != 0 {
+				n := len(braces) - 1
+				codePointer = braces[n]
+				braces[n] = 0
+				braces = braces[:n]
+			} else {
+				n := len(braces) - 1
+				braces = braces[:n]
+			}
+		}
+		codePointer++
+	}
+}
+
+
 func main() {
 	var args = os.Args[1:]
 	if len(args) < 1 {
@@ -145,5 +240,8 @@ func main() {
 
 	if len(args) == 1 {
 		execute(file)
+	} else {
+		inputs := openFile(args[1])
+		executeCsv(file, inputs)
 	}
 }
