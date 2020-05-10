@@ -6,6 +6,6 @@ csharp/.idea
 csharp/.vs
 java/.idea
 java/out
-js/node_modules
+typescript/node_modules
 go/.idea
 go/bin
