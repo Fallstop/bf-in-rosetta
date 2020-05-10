@@ -12,3 +12,4 @@ Currently complete languages
 
 In progress languages
 - B
+- TypeScript
