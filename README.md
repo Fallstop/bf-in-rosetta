@@ -7,3 +7,4 @@ Currently complete languages
 - C++
 - Scratch
 - Java
+- C#
