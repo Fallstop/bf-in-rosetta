@@ -1,2 +1,11 @@
 rust/.*
 rust/target/*
+csharp/csharp/bin
+csharp/csharp/obj
+csharp/.idea
+csharp/.vs
+java/.idea
+java/out
+js/node_modules
+go/.idea
+go/bin

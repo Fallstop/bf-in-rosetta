@@ -1,0 +1,28 @@
+{
+  "name": "js",
+  "version": "1.0.0",
+  "description": "The next installment in the bf-in-rosetta",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fallstop/bf-in-rosetta.git"
+  },
+  "keywords": [
+    "brainfuck",
+    "js"
+  ],
+  "author": "LaSpruca <nathanhare32@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fallstop/bf-in-rosetta/issues"
+  },
+  "homepage": "https://github.com/fallstop/bf-in-rosetta#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.3"
+  }
+}

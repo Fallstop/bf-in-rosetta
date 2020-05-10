@@ -252,6 +252,7 @@ namespace csharp
                     Console.WriteLine(sb.ToString());
                     char val = (char) Int32.Parse(sb.ToString());
                     list.Add(val);
+                    sb.Clear();
                 }
             }
             
