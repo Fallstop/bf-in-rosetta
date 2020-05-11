@@ -7,5 +7,7 @@ csharp/.vs
 java/.idea
 java/out
 typescript/node_modules
+typescript/.idea
+typescript/dist
 go/.idea
 go/bin
