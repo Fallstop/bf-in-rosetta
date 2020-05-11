@@ -2,9 +2,8 @@
   "compilerOptions": {
     "outDir": "../dist",
     "module": "umd",
-    "target": "es6",
+    "target": "es3",
     "sourceMap": true,
-    "sourceMap" : true,
     "removeComments": false,
     "moduleResolution": "Node"
   }
