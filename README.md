@@ -9,7 +9,7 @@ Currently complete languages
 - Java
 - C#
 - Go
+- TypeScript
 
 In progress languages
 - B
-- TypeScript
