@@ -57,25 +57,48 @@ const parse = function (source: String): Array<BrainFuck> {
     return tokens;
 }
 
-const execute = async function(sourceFile: String) {
+const parseCsv = function(inputs: String): Array<number> {
+    console.log(`Parsing CSV input: ${inputs}`);
+    let list: Array<number> = new Array<number>();
+    // @ts-ignore
+    let r = inputs.split(",");
+
+    r.forEach(i => {
+        // @ts-ignore
+        let inputs = [...i];
+        let num = "";
+        inputs.forEach(number => {
+            // @ts-ignore
+            let q = number.charCodeAt();
+            if (q >= 48 && q <= 57) {
+                num += number;
+            }
+        });
+        list.push(+num);
+    });
+
+    process.stdout.write("Parsed: ");
+    list.forEach(num => process.stdout.write(`${num}`));
+    process.stdout.write('\n');
+    return list;
+}
+
+const execute = function(sourceFile: String, inputs: String) {
     let source = parse(sourceFile);
+    let input = parseCsv(inputs);
+
     const memorySize = 30000;
-    let memory = new Int8Array(memorySize);
+    let memory = new Uint8Array(memorySize);
     for (let i = 0; i < memorySize - 1; i++) {
         memory[i] = 0;
     }
     let mp = 0;
+    let ip = 0;
     let braces = new Array<number>();
 
     let i = 0;
 
-    let qurestion = [
-        {
-            type: 'input',
-            name: 'name',
-            message: '>>> '
-        }
-    ]
+    console.log("Executing");
 
     while (i < source.length) {
         let token = source[i];
@@ -84,9 +107,41 @@ const execute = async function(sourceFile: String) {
                 console.log(memory[mp]);
                 break;
             case BrainFuck.IN:
-                
+                console.log(`${input.length}`);
+                if (ip > input.length) {
+                    console.log(`Error not enough inputs does not exist, needed at least ${ip}, got ${input.length}`);
+                    process.exit(-1);
+                }
+                memory[mp] = input[ip];
+                ip++;
                 break;
-            default:
+            case BrainFuck.DEC:
+                memory[mp]--;
+                break;
+            case BrainFuck.INC:
+                memory[mp]++;
+                break;
+            case BrainFuck.SLF:
+                mp--;
+                if (mp < 0) {
+                    mp = memorySize - 1;
+                }
+                break;
+            case BrainFuck.SRT:
+                mp++;
+                if (mp > memorySize) {
+                    mp = 0;
+                }
+                break;
+            case BrainFuck.SJP:
+                braces.push(i - 1);
+                break;
+            case BrainFuck.JNZ:
+                if (memory[mp] != 0) {
+                    i = braces.pop();
+                } else {
+                    braces.pop();
+                }
                 break;
         }
         i++;
@@ -99,23 +154,23 @@ const main = function() {
 
     const args = process.argv;
 
-    if (args.length < 3) {
-        console.error("Error, expected at lease 1 argument, got none\nUsage: npm execute [source_file]");
+    if (args.length < 4) {
+        console.error("Error, expected at lease 2 arguments\nUsage: npm execute [source_file] [scv_input]");
         process.exit(-1);
     }
 
     let source: String;
+    let input: String;
 
     try {
-        source = fs.readFileSync(args[2], "utf-8")
+        source = fs.readFileSync(args[2], "utf-8");
+        input = fs.readFileSync(args[3], "utf-8");
     } catch (e) {
-        console.error("Unable to open file " + args[2]);
+        console.error("Unable to open file " + args[2] + " or " + args[3] + ". I dont really know, fuck you!");
         process.exit(-1);
     }
 
-    if (args.length < 4) {
-        execute(source);
-    }
+    execute(source, input);
 }
 
 main();
