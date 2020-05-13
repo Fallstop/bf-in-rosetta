@@ -1,5 +1,7 @@
 use std::env;
 use std::fs;
+use std::thread;
+use std::sync::{Arc, Mutex};
 use regex::Regex;
 use std::process;
 use std::time::Instant;
@@ -97,13 +99,15 @@ fn equal_vec(arr: &Vec<char>) -> bool {
     arr.iter().min() == arr.iter().max()
 }
 
-fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
+fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
     println!("Running bf code");
     let mut memory: Vec<i64> = vec!(0);
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
-    
+    let mut caching_data = Arc::new(Mutex::new(vec!(0)));
+    let mut handles = vec![];
+
     while code_pointer < code.len()  as usize{
         let code_char: char = code[code_pointer];
         match code_char {
@@ -120,6 +124,18 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
             'b' => {code_pointer+=1; if memory_pointer != code[code_pointer] as usize-1{memory_pointer-=code[code_pointer] as usize;}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"))} }, //<
             'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64;}, //+
             'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; }, //-
+            '[' => {
+                if braces[code_pointer] == 0 {
+                    braces[code_pointer] = -1;
+                    let caching_data = Arc::clone(&caching_data);
+                    let handle = thread::spawn(move || {
+                        let mut caching_dataLocal = caching_data.lock().unwrap();
+                        println!("Hi from a thread, I'm a uncached loop!");
+                        caching_dataLocal[0] += 1;
+                    });
+                    handles.push(handle);
+                }
+            }
             _ => (),
 
 		}
@@ -130,6 +146,11 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
         
     }
     println!("BF excution done");
+    for handle in handles {
+        handle.join().unwrap();
+    }
+    let mut caching_dataLocal = caching_data.lock().unwrap();
+    println!("Carching data: {:?}",caching_dataLocal[0]);
 }
 fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
@@ -146,14 +167,14 @@ fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     return inputs;
 }
 fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
-    let mut nested_level: i32 = 0;
+    let mut nested_level: i32 = 1;
     let mut bracket_left: Vec<Vec<i32>> = vec!();
     let mut bracket_right: Vec<i32> = vec!();
     for i in 0..code_post.len(){
         if code_post[i] == '['{
             nested_level += 1;
             bracket_left.push(vec!(nested_level,i as i32));
-            bracket_right.push(i as i32);
+            bracket_right.push(0);
         }
         else if code_post[i] == ']'{
             let mut x: usize =  bracket_left.len() -1;
@@ -168,15 +189,23 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
             nested_level -= 1;
         }
         else{
-            bracket_right.push(0);
+            bracket_right.push(-2);
         }
     }
     return bracket_right;
 }
+
 
 fn throw_error(error_code: i32,message: std::string::String){
     println!("The program encounted a error:");
     println!("Code: {}, Message: {}",error_code,message);
     process::exit(error_code);
 }
+
+pub struct LoopCacheMeta {
+    instructions: Vec<Vec<i32>>,
+    control_pointer: i32,
+    code_pointer: i32,
+}
+
 
