@@ -100,14 +100,16 @@ fn equal_vec(arr: &Vec<char>) -> bool {
     arr.iter().min() == arr.iter().max()
 }
 
-fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
+fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
     println!("Running bf code");
     let mut memory: Vec<i64> = vec!(0);
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
     let mut caching_data: std::sync::Arc<std::sync::Mutex<std::vec::Vec<LoopCacheMeta>>> = Arc::new(Mutex::new(vec!()));
+    let mut caching_refrence = Arc::new(Mutex::new(vec!(0; code.len())));
     let mut handles = vec![];
+
     let code_arc = Arc::new(code.clone());
 
     while code_pointer < code.len()  as usize{
@@ -127,31 +129,27 @@ fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
             'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64;}, //+
             'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; }, //-
             '[' => {
-                if braces[code_pointer] == 0 {
-                    braces[code_pointer] = -1;
+                let mut cacheStatus = Arc::clone(&caching_refrence).lock().unwrap()[code_pointer];
+                if cacheStatus == 0 {
+                    cacheStatus = -1;
+                    drop(cacheStatus);
                     let caching_data = Arc::clone(&caching_data);
                     let code_arc = Arc::clone(&code_arc);
+                    let caching_refrence = Arc::clone(&caching_refrence);
                     let mut code_pointer_local = code_pointer.clone()+1;
                     let handle = thread::spawn(move || {
-                        let mut current_cache: LoopCacheMeta = LoopCacheMeta {instructions: vec!(vec!()), code_pointer: 0, control_pointer: 0, memory_pointer: 0};
+                        let mut current_cache: LoopCacheMeta = LoopCacheMeta {instructions: vec!(), code_pointer: 0, control_pointer: 0, memory_pointer: 0};
                         println!("Caching Thread started at {:?}",code_pointer_local);
                         let mut code_arc_char = code_arc[code_pointer_local];
                         let mut able_to_be_cached: bool = true;
+                        let starting_position = code_pointer_local.clone();
                         while code_arc_char != ']' && able_to_be_cached == true{
                             
                             match code_arc_char {
-                                '<' => {
-                                    current_cache.memory_pointer -=1;
-                                },
-                                '>' => {
-                                    current_cache.memory_pointer +=1;
-                                },
-                                '+' => {
-                                    current_cache.change_memory(1);
-                                },
-                                '-' => {
-                                    current_cache.change_memory(-1);
-                                },
+                                '<' => current_cache.memory_pointer -=1,
+                                '>' => current_cache.memory_pointer +=1,
+                                '+' => current_cache.change_memory(1),
+                                '-' => current_cache.change_memory(-1),
                                 'a' => { // >
                                     code_pointer_local+=1;
                                     current_cache.memory_pointer += code_arc[code_pointer_local] as i32; 
@@ -183,7 +181,13 @@ fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
                         }
                         if able_to_be_cached == true {
                             current_cache.code_pointer = code_pointer_local as i32;
-                            println!("Cache finished Sucessfully")
+                            let mut mutex_caching_data = caching_data.lock().unwrap();
+                            let mut mutex_caching_refrence = caching_refrence.lock().unwrap();
+                            mutex_caching_data.push(current_cache);
+                            mutex_caching_refrence[starting_position] = mutex_caching_data.len() as i32-1;
+                            
+                            
+                            println!("Cache finished Sucessfully");
                         }
 
                     });
@@ -204,7 +208,7 @@ fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
         handle.join().unwrap();
     }
     let mut caching_dataLocal = caching_data.lock().unwrap();
-    println!("Carching data: {:?}",caching_dataLocal);
+    println!("Carching data: {:#?}",caching_dataLocal);
 }
 fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
