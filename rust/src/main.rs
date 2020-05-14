@@ -13,6 +13,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let code: Vec<char> = process_bf(&args); //Gets the bf code from the file and removes comments
     let inputs: Vec<i64> = get_inputs(&args); //Gets the program inputs from command line
+    // let macro_code = code;
     let macro_code = macro_scan(&code); //Condenses repeated charcters in macros (Shortcuts) 
     let braces: Vec<i32> = match_braces(&macro_code); //Matches the loops in the code
     run_bf(macro_code,braces,inputs); //Steps through processed code
@@ -105,8 +106,9 @@ fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
-    let mut caching_data = Arc::new(Mutex::new(vec!(0)));
+    let mut caching_data: std::sync::Arc<std::sync::Mutex<std::vec::Vec<LoopCacheMeta>>> = Arc::new(Mutex::new(vec!()));
     let mut handles = vec![];
+    let code_arc = Arc::new(code.clone());
 
     while code_pointer < code.len()  as usize{
         let code_char: char = code[code_pointer];
@@ -128,10 +130,62 @@ fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
                 if braces[code_pointer] == 0 {
                     braces[code_pointer] = -1;
                     let caching_data = Arc::clone(&caching_data);
+                    let code_arc = Arc::clone(&code_arc);
+                    let mut code_pointer_local = code_pointer.clone()+1;
                     let handle = thread::spawn(move || {
-                        let mut caching_dataLocal = caching_data.lock().unwrap();
-                        println!("Hi from a thread, I'm a uncached loop!");
-                        caching_dataLocal[0] += 1;
+                        let mut current_cache: LoopCacheMeta = LoopCacheMeta {instructions: vec!(vec!()), code_pointer: 0, control_pointer: 0, memory_pointer: 0};
+                        println!("Caching Thread started at {:?}",code_pointer_local);
+                        let mut code_arc_char = code_arc[code_pointer_local];
+                        let mut able_to_be_cached: bool = true;
+                        while code_arc_char != ']' && able_to_be_cached == true{
+                            
+                            match code_arc_char {
+                                '<' => {
+                                    current_cache.memory_pointer -=1;
+                                },
+                                '>' => {
+                                    current_cache.memory_pointer +=1;
+                                },
+                                '+' => {
+                                    current_cache.change_memory(1);
+                                },
+                                '-' => {
+                                    current_cache.change_memory(-1);
+                                },
+                                'a' => { // >
+                                    code_pointer_local+=1;
+                                    current_cache.memory_pointer += code_arc[code_pointer_local] as i32; 
+                                }, 
+                                'b' => { // <
+                                    code_pointer_local+=1;
+                                    current_cache.memory_pointer -= code_arc[code_pointer_local] as i32; 
+                                }, 
+                                'c' => { // +
+                                    code_pointer_local+=1;
+                                    current_cache.change_memory(1);
+                                },
+                                'd' => { // -
+                                    code_pointer_local+=1;
+                                    current_cache.change_memory(-1);
+                                },
+                                _   => {
+                                    println!("Loop cannot be cached beacuse of {}",code_arc_char);
+                                    able_to_be_cached = false
+                                },
+                            }
+                            code_pointer_local += 1;
+                            code_arc_char = code_arc[code_pointer_local];
+                        }
+                        current_cache.control_pointer = current_cache.memory_pointer as i32;
+                        if current_cache.control_pointer != 0 {
+                            println!("Loop cannot be cached due to not being static: {}",current_cache.control_pointer);
+                            able_to_be_cached = false;
+                        }
+                        if able_to_be_cached == true {
+                            current_cache.code_pointer = code_pointer_local as i32;
+                            println!("Cache finished Sucessfully")
+                        }
+
                     });
                     handles.push(handle);
                 }
@@ -150,7 +204,7 @@ fn run_bf(code: Vec<char>,mut braces: Vec<i32>,inputs: Vec<i64>){
         handle.join().unwrap();
     }
     let mut caching_dataLocal = caching_data.lock().unwrap();
-    println!("Carching data: {:?}",caching_dataLocal[0]);
+    println!("Carching data: {:?}",caching_dataLocal);
 }
 fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
@@ -201,11 +255,20 @@ fn throw_error(error_code: i32,message: std::string::String){
     println!("Code: {}, Message: {}",error_code,message);
     process::exit(error_code);
 }
-
+#[derive(Debug)]
 pub struct LoopCacheMeta {
     instructions: Vec<Vec<i32>>,
     control_pointer: i32,
     code_pointer: i32,
+    memory_pointer: i32,
 }
-
-
+impl LoopCacheMeta {
+    pub fn change_memory(&mut self, amount: i32) {
+        let mut instruction: Vec<i32> = vec!();
+        instruction.push(self.memory_pointer);
+        instruction.push(amount.clone());
+        println!("Change memorying memory {:?}",instruction);
+        self.instructions.push(instruction);
+        return;
+    }
+}
