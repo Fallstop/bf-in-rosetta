@@ -130,6 +130,7 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
             'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; }, //-
             '[' => {
                 let mut cacheStatus = Arc::clone(&caching_refrence).lock().unwrap()[code_pointer];
+                println!("Cache Status: {}",cacheStatus);
                 if cacheStatus == 0 {
                     cacheStatus = -1;
                     drop(cacheStatus);
@@ -185,13 +186,28 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
                             let mut mutex_caching_refrence = caching_refrence.lock().unwrap();
                             mutex_caching_data.push(current_cache);
                             mutex_caching_refrence[starting_position] = mutex_caching_data.len() as i32-1;
+                            println!("Cache compleated sucesfully at {:?}",mutex_caching_refrence[starting_position]);
                             
                             
-                            println!("Cache finished Sucessfully");
+                            // println!("Cache finished Sucessfully");
                         }
 
                     });
                     handles.push(handle);
+                } else if cacheStatus > 0{
+                    println!("Wowe, a cached loop.");
+                    let mutex_cache = Arc::clone(&caching_data);
+                    let cache = mutex_cache.lock().unwrap()[cacheStatus as usize].clone();
+                    drop(cacheStatus);
+                    let mut i: usize = 0;
+                    while i < cache.instructions.len() {
+                        memory[memory_pointer+cache.instructions[i][0] as usize] += cache.instructions[i][1] as i64 * memory[cache.control_pointer as usize];
+                        i+=1;
+                    }
+                    memory[cache.control_pointer as usize] = 0;
+                    memory_pointer = cache.memory_pointer as usize;
+                    code_pointer = cache.code_pointer as usize;
+
                 }
             }
             _ => (),
@@ -207,8 +223,9 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
     for handle in handles {
         handle.join().unwrap();
     }
+
     let mut caching_dataLocal = caching_data.lock().unwrap();
-    println!("Carching data: {:#?}",caching_dataLocal);
+    println!("Carching refrence: {:#?}",Arc::clone(&caching_refrence).lock().unwrap());
 }
 fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
@@ -260,6 +277,7 @@ fn throw_error(error_code: i32,message: std::string::String){
     process::exit(error_code);
 }
 #[derive(Debug)]
+#[derive(Clone)]
 pub struct LoopCacheMeta {
     instructions: Vec<Vec<i32>>,
     control_pointer: i32,
@@ -271,7 +289,6 @@ impl LoopCacheMeta {
         let mut instruction: Vec<i32> = vec!();
         instruction.push(self.memory_pointer);
         instruction.push(amount.clone());
-        println!("Change memorying memory {:?}",instruction);
         self.instructions.push(instruction);
         return;
     }
