@@ -1,7 +1,7 @@
 import subprocess
 import time
 import csv
-RangeToDo = 35
+RangeToDo = 500
 NumToIterate = 3
 csvFileName = "benchOuput.csv"
 timesAll = []
@@ -14,8 +14,9 @@ while i <= RangeToDo:
 i=0
 while i < NumToIterate:
     for x,nums in enumerate(timesAll):
+        print(".\\LoopCache ../example.txt "+str(nums[0]))
         start_time = time.time()
-        subprocess.check_output(r".\\target\\release\\rust-bf.exe .\\example.txt "+str(nums[0]))
+        subprocess.check_output(".\\LoopCache ../example.txt "+str(nums[0]))
         time_taken = time.time() - start_time
         timesAll[x].append(time_taken)
         
