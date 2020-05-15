@@ -1,7 +1,7 @@
 # bf-in
 Brainfuck interpreter in every launguge. Beacuse yes.
 ## TAKE YA PICK
-Currently complete languages
+#### Currently complete languages
 - Rust
 - Python
 - C++
@@ -11,5 +11,8 @@ Currently complete languages
 - Go
 - TypeScript
 
-In progress languages
+#### In progress languages
+- R
+
+#### Languages that were abanadend for mental health reasons
 - B
