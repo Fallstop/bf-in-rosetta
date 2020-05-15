@@ -1,8 +1,10 @@
 use std::env;
 use std::fs;
+use std::thread;
+use std::sync::{Arc,Mutex};
 use regex::Regex;
 use std::process;
-use std::time::Instant;
+use std::time::{Instant,Duration};
 
 
 fn main() {
@@ -11,6 +13,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let code: Vec<char> = process_bf(&args); //Gets the bf code from the file and removes comments
     let inputs: Vec<i64> = get_inputs(&args); //Gets the program inputs from command line
+    // let macro_code = code;
     let macro_code = macro_scan(&code); //Condenses repeated charcters in macros (Shortcuts) 
     let braces: Vec<i32> = match_braces(&macro_code); //Matches the loops in the code
     run_bf(macro_code,braces,inputs); //Steps through processed code
@@ -78,7 +81,6 @@ fn macro_scan(code: &Vec<char>) -> Vec<char>{
         code_macro.push(code[i]);
         i+=1;
     }
-    
     return code_macro;
 
 }
@@ -103,11 +105,16 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
-    
-    while code_pointer < code.len()  as usize{
+    let caching_data = Arc::new(Mutex::new(vec!()));
+    let caching_refrence = Arc::new(Mutex::new(vec!(0; code.len())));
+    let mut handles = vec![];
+    let code_arc = Arc::new(code.clone());
+    println!("Varibles Initialesd");
+
+    while code_pointer < code.len() as usize{
         let code_char: char = code[code_pointer];
         match code_char {
-            '.' => println!("{}",memory[memory_pointer]),
+            '.' => println!("Output: {}",memory[memory_pointer]),
             ',' => {memory[memory_pointer] = inputs[inputs_pointer]; inputs_pointer +=1; },
             '>' => memory_pointer+=1,
             '<' => {if memory_pointer != 0{memory_pointer-=1}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"))}},
@@ -120,16 +127,108 @@ fn run_bf(code: Vec<char>,braces: Vec<i32>,inputs: Vec<i64>){
             'b' => {code_pointer+=1; if memory_pointer != code[code_pointer] as usize-1{memory_pointer-=code[code_pointer] as usize;}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"))} }, //<
             'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64;}, //+
             'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; }, //-
-            _ => (),
+            '[' => {
+                let arc_cache_status = Arc::clone(&caching_refrence);
+                let mut mutex_cache_status = arc_cache_status.lock().unwrap();
+                let current_cache_status = mutex_cache_status[code_pointer];
+                if current_cache_status == 0 {
+                    mutex_cache_status[code_pointer] = -1;
+                    drop(mutex_cache_status);
+                    let caching_data = Arc::clone(&caching_data);
+                    let code_arc = Arc::clone(&code_arc);
+                    let caching_refrence = Arc::clone(&caching_refrence);
+                    let mut code_pointer_local = code_pointer.clone()+1;
+                    let handle = thread::spawn(move || {
+                        thread::park_timeout(Duration::from_millis(10));
+                        let mut current_cache: LoopCacheMeta = LoopCacheMeta::new();
+                        let mut code_arc_char = code_arc[code_pointer_local];
+                        let mut able_to_be_cached: bool = true;
+                        let starting_position = code_pointer_local.clone();
+                        let mut mutex_caching_refrence = caching_refrence.lock().unwrap();
+                        mutex_caching_refrence[starting_position] = -1;
+                        drop(mutex_caching_refrence);
+                        while code_arc_char != ']' && able_to_be_cached == true{
+                            match code_arc_char {
+                                '<' => current_cache.memory_pointer -=1,
+                                '>' => current_cache.memory_pointer +=1,
+                                '+' => current_cache.change_memory(1),
+                                '-' => current_cache.change_memory(-1),
+                                'a' => { // >
+                                    code_pointer_local+=1;
+                                    current_cache.memory_pointer += code_arc[code_pointer_local] as i32; 
+                                }, 
+                                'b' => { // <
+                                    code_pointer_local+=1;
+                                    current_cache.memory_pointer -= code_arc[code_pointer_local] as i32; 
+                                }, 
+                                'c' => { // +
+                                    code_pointer_local+=1;
+                                    current_cache.change_memory(code_arc[code_pointer_local] as i32);
+                                },
+                                'd' => { // -
+                                    code_pointer_local+=1;
+                                    current_cache.change_memory(-1*code_arc[code_pointer_local] as i32);
+                                },
+                                _   => {
+                                    able_to_be_cached = false;
+                                },
+                            }
+                            code_pointer_local += 1;
+                            code_arc_char = code_arc[code_pointer_local];
+                        }
+                        current_cache.control_pointer = current_cache.memory_pointer as i32;
+                        if current_cache.control_pointer != 0 {
+                            able_to_be_cached = false;
+                        }
+                        if able_to_be_cached == true {
+                            current_cache.code_pointer = code_pointer_local as i32;
+                            current_cache.loop_starting_loc = starting_position as i32;
+                            let mut mutex_caching_data = caching_data.lock().unwrap();
+                            let mut mutex_caching_refrence = caching_refrence.lock().unwrap();
+                            mutex_caching_data.push(current_cache);
+                            mutex_caching_refrence[starting_position-1] = mutex_caching_data.len() as i32; //One more than actual index
+                            drop(mutex_caching_data);
+                            drop(caching_data);
+                            drop(mutex_caching_refrence);
+                        }
+                        else { // Error caused cache to not compleate
+                            drop(caching_data);
+                        }
 
-		}
+                    });
+                    handles.push(handle);
+                } else if current_cache_status == -30{
+                    let mutex_cache = Arc::clone(&caching_data);
+                    let unlocked_cache = mutex_cache.lock().unwrap();
+                    let cache = unlocked_cache[current_cache_status as usize-1].clone();
+                    drop(mutex_cache_status);
+                    drop(unlocked_cache);
+                    let mut i: usize = 0;
+                    let control_memory =  memory[memory_pointer+cache.control_pointer as usize];
+                    while i < cache.instructions.len() {
+                        memory[memory_pointer+cache.instructions[i][0] as usize] += cache.instructions[i][1] as i64 * control_memory;
+                        i+=1;
+                    }
+                    memory[memory_pointer+cache.control_pointer as usize] = 0;
+                    memory_pointer = add_to_usize(memory_pointer, cache.memory_pointer);
+                    code_pointer = cache.code_pointer as usize;
+
+                }
+                else {
+                    drop(mutex_cache_status);
+                }
+            }
+            _ => (),
+        }
         code_pointer+=1;
         while memory_pointer >= memory.len()-1{
-            memory.push(0);  
+            memory.push(0);
         }
-        
     }
     println!("BF excution done");
+    for handle in handles {
+        handle.join().unwrap();
+    }
 }
 fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     let mut inputs: Vec<i64> = vec![];
@@ -146,14 +245,14 @@ fn get_inputs(args: &Vec<String>)-> Vec<i64>{
     return inputs;
 }
 fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
-    let mut nested_level: i32 = 0;
+    let mut nested_level: i32 = 1;
     let mut bracket_left: Vec<Vec<i32>> = vec!();
     let mut bracket_right: Vec<i32> = vec!();
     for i in 0..code_post.len(){
         if code_post[i] == '['{
             nested_level += 1;
             bracket_left.push(vec!(nested_level,i as i32));
-            bracket_right.push(i as i32);
+            bracket_right.push(0);
         }
         else if code_post[i] == ']'{
             let mut x: usize =  bracket_left.len() -1;
@@ -168,11 +267,12 @@ fn match_braces(code_post: &Vec<char>)-> Vec<i32>{
             nested_level -= 1;
         }
         else{
-            bracket_right.push(0);
+            bracket_right.push(-2);
         }
     }
     return bracket_right;
 }
+
 
 fn throw_error(error_code: i32,message: std::string::String){
     println!("The program encounted a error:");
@@ -180,3 +280,38 @@ fn throw_error(error_code: i32,message: std::string::String){
     process::exit(error_code);
 }
 
+fn add_to_usize(usize_num: usize, i32_num: i32) -> usize{
+    if i32_num.is_negative() {
+        return usize_num - i32_num.wrapping_abs() as usize;
+    } else {
+        return usize_num + i32_num as usize;
+    }
+}
+
+#[derive(Debug)]
+#[derive(Clone)]
+pub struct LoopCacheMeta {
+    instructions: Vec<Vec<i32>>,
+    control_pointer: i32,
+    code_pointer: i32,
+    memory_pointer: i32,
+    loop_starting_loc: i32,
+}
+impl LoopCacheMeta {
+    pub fn change_memory(&mut self, amount: i32) {
+        let mut instruction: Vec<i32> = vec!();
+        instruction.push(self.memory_pointer);
+        instruction.push(amount.clone());
+        self.instructions.push(instruction);
+        return;
+    }
+    pub fn new() -> LoopCacheMeta{
+        return LoopCacheMeta {
+            instructions: vec!(),
+            code_pointer: 0,
+            control_pointer: 0,
+            memory_pointer: 0,
+            loop_starting_loc: 0
+        }
+    }
+}
