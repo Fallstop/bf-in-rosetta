@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 void main() {
@@ -8,32 +9,41 @@ class MyApp extends StatelessWidget {
 	// This widget is the root of your application.
 	@override
 	Widget build(BuildContext context) {
-		return MaterialApp(
-			title: 'Flutter-BF',
-			theme: ThemeData(
-				// This is the theme of your application.
-				//
-				// Try running your application with "flutter run". You'll see the
-				// application has a blue toolbar. Then, without quitting the app, try
-				// changing the primarySwatch below to Colors.green and then invoke
-				// "hot reload" (press "r" in the console where you ran "flutter run",
-				// or simply save your changes to "hot reload" in a Flutter IDE).
-				// Notice that the counter didn't reset back to zero; the application
-				// is not restarted.
-				primarySwatch: Colors.blue,
-				// This makes the visual density adapt to the platform that you run
-				// the app on. For desktop platforms, the controls will be smaller and
-				// closer together (more dense) than on mobile platforms.
-				visualDensity: VisualDensity.adaptivePlatformDensity,
-			),
-			home: MyHomePage(title: 'Flutter-BF'), 
-			// home: Scaffold(
-			//   appBar: AppBar(
-			//     title: Text("yes"),
-			//   ),
-			//   body: inputForm(),
-			// ),
-		);
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
+        
+      },
+      child: MaterialApp(
+        title: 'Flutter-BF',
+        theme: ThemeData(
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          primarySwatch: Colors.blue,
+          // This makes the visual density adapt to the platform that you run
+          // the app on. For desktop platforms, the controls will be smaller and
+          // closer together (more dense) than on mobile platforms.
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: MyHomePage(title: 'Flutter-BF'), 
+        // home: Scaffold(
+        //   appBar: AppBar(
+        //     title: Text("yes"),
+        //   ),
+        //   body: inputForm(),
+        // ),
+      ), 
+    );
 	}
 }
 
@@ -81,98 +91,18 @@ class inputFormState extends State<inputForm> {
     super.dispose();
   }
 	var outputText = "";
-	void _runBF(bfCodeInput,inputsInput) async {
+	void _initateBF(bfCodeInput,inputsInput) async {
 		print("Input Form passed validation");
-		outputText = "\nLoading Inputs";
-		List codeRaw = bfCodeInput.split("");
-		List code = [];
-		String char = '';
-		for (char in codeRaw) {
-			if (char == '<' || char == '>' || char == '+' || char == '-' || char == ',' || char == '.' || char == '[' || char == ']') {
-				code.add(char);
-			}
-		}
-		outputText += "\n"+code.join();
-
-		final inputsRaw = inputsInput.split(",");
-		List<int> inputs = [];
-		for (char in inputsRaw){
-			inputs.add(int.parse(char));
-		}
-		outputText += "\n"+inputs.join();
-
-		outputText += "\nMatching Brackets";
-		int bracket_nested_level = 0;
-		List<int> bracket_data = [];
-		int i = 0;
-		int x = 0;
-		while (i < code.length) {
-			print("Matching bracket: "+i.toString()+", in code length: "+ code.length.toString());
-			char = code[i];
-			if (char == "[") {
-				bracket_nested_level++;
-				bracket_data.add(bracket_nested_level);
-			} else if (char == "]") {
-				x = i-1;
-				while (x >= 0) {
-					if (bracket_data[x] == bracket_nested_level) {
-						bracket_data.add(x);
-            print("Bracket Matched: "+x.toString());
-            bracket_nested_level--;
-						break;
-					}
-					x--;
-				}
-			} else {
-				bracket_data.add(-1);
-			}
-			i++;
-		}
-		outputText += "\nBracket Matching done";
-		int codePointer = 0;
-		int inputPointer = 0;
-		int memoryPointer = 0;
-		List<int> memory = [0];
-		while (codePointer < code.length) {
-			char = code[codePointer];
-			print("Excuting: "+codePointer.toString()+", Char: "+char);
-			switch (char) {
-				case ">":
-					memoryPointer++;
-					break;
-				case "<":
-					memoryPointer--;
-					break;
-				case "+":
-					memory[memoryPointer]++;
-					break;
-				case "-":
-					memory[memoryPointer]--;
-					break;
-				case ",":
-					print("Taking input: "+inputs[inputPointer].toString());
-					memory[memoryPointer] = inputs[inputPointer];
-          inputPointer++;
-					break;
-				case ".":
-          setState(() {
-            outputText += "\n Output: " + memory[memoryPointer].toString();
-          });
-					break;
-				case "]":
-          print("Might be going back");
-          if (memory[memoryPointer] != 0) {
-            print("Going back to "+(bracket_data[codePointer]-1).toString());
-            codePointer = bracket_data[codePointer]-1;
-          }
-					break;
-			}
-			while (memoryPointer >= memory.length) {
-				memory.add(0);
-			}
-			codePointer++;
-		}
-
+		setState(() {
+		  outputText = "\nRunning";
+		});
+    var feilds = "";
+    feilds += bfCodeInput+"~BFCode|Inputs~";
+    feilds += inputsInput;
+    final result = await compute(runBF,feilds);
+    setState(() {
+      outputText = result;
+    });
 	}
 
 	@override
@@ -245,7 +175,7 @@ class inputFormState extends State<inputForm> {
 								// If the form is valid, display a Snackbar.
 								Scaffold.of(context)
 										.showSnackBar(SnackBar(content: Text('Running Code')));
-								_runBF(bfCodeInputController.text,inputsInputController.text);
+								_initateBF(bfCodeInputController.text,inputsInputController.text);
 							}
 							},
 						tooltip: 'Run Code',
@@ -304,6 +234,102 @@ class _MyHomePageState extends State<MyHomePage> {
 
 		);
 	}
+}
+
+String runBF(feilds) {
+  print("Getting feilds");
+  // var bfCodeInput = feilds[0];
+  // var inputsInput = feilds[1];
+  List feildsList = feilds.split("~BFCode|Inputs~");
+  var bfCodeInput = feildsList[0];
+  var inputsInput = feildsList[1];
+  print("Got feilds");
+  print("BF run started, with code "+ bfCodeInput+" and " + inputsInput);
+  String outputText = "";
+  List codeRaw = bfCodeInput.split("");
+		List code = [];
+		String char = '';
+		for (char in codeRaw) {
+			if (char == '<' || char == '>' || char == '+' || char == '-' || char == ',' || char == '.' || char == '[' || char == ']') {
+				code.add(char);
+			}
+		}
+		outputText += "\n"+code.join();
+
+		final inputsRaw = inputsInput.split(",");
+		List<int> inputs = [];
+		for (char in inputsRaw){
+			inputs.add(int.parse(char));
+		}
+		outputText += "\n"+inputs.join();
+
+		outputText += "\nMatching Brackets";
+		int bracket_nested_level = 0;
+		List<int> bracket_data = [];
+		int i = 0;
+		int x = 0;
+		while (i < code.length) {
+			char = code[i];
+			if (char == "[") {
+				bracket_nested_level++;
+				bracket_data.add(bracket_nested_level);
+			} else if (char == "]") {
+				x = i-1;
+				while (x >= 0) {
+					if (bracket_data[x] == bracket_nested_level) {
+						bracket_data.add(x);
+            print("Bracket Matched: "+x.toString());
+            bracket_nested_level--;
+						break;
+					}
+					x--;
+				}
+			} else {
+				bracket_data.add(-1);
+			}
+			i++;
+		}
+		outputText += "\nBracket Matching done";
+		int codePointer = 0;
+		int inputPointer = 0;
+		int memoryPointer = 0;
+		List<int> memory = [0];
+		while (codePointer < code.length) {
+			char = code[codePointer];
+			switch (char) {
+				case ">":
+					memoryPointer++;
+					break;
+				case "<":
+					memoryPointer--;
+					break;
+				case "+":
+					memory[memoryPointer]++;
+					break;
+				case "-":
+					memory[memoryPointer]--;
+					break;
+				case ",":
+					print("Taking input: "+inputs[inputPointer].toString());
+					memory[memoryPointer] = inputs[inputPointer];
+          inputPointer++;
+					break;
+				case ".":
+            outputText += "\n Output: " + memory[memoryPointer].toString();
+					break;
+				case "]":
+          if (memory[memoryPointer] != 0) {
+            codePointer = bracket_data[codePointer]-1;
+          }
+					break;
+			}
+			while (memoryPointer >= memory.length) {
+				memory.add(0);
+			}
+			codePointer++;
+		}
+    print("Code running is compleate with output "+ outputText);
+    return outputText;
 }
 
 bool isNumeric(String s) {
