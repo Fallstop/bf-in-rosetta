@@ -17,9 +17,10 @@ Brainfuck interpreter in every launguge. Beacuse yes.
 - #### R
     In case you want to plot the output for some reason.
 - #### Flutter App
+- #### Ruby
 
 ### In progress languages
-- #### Ruby
+- #### Swift
 
 ### Languages that were abanadend for mental health reasons
 - #### B 
