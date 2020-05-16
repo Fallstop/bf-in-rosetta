@@ -16,10 +16,10 @@ Brainfuck interpreter in every launguge. Beacuse yes.
     Specifically made to be incompatible with Javascript
 - #### R
     In case you want to plot the output for some reason.
+- #### Ruby
 
 ### In progress languages
 - #### Flutter App
-- #### Ruby
 
 ### Languages that were abanadend for mental health reasons
 - #### B 

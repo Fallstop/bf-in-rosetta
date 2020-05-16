@@ -51,6 +51,27 @@ def parse(source)
   list
 end
 
+def parse_csv(source)
+  puts "Parsing CSV: #{source}"
+  brrr = source.split ''
+  temp = ''
+  list = []
+  brrr.each do |a|
+    yes = a.ord
+    temp = "#{temp}#{a}" if yes < 58 && yes > 47
+    if a == ','
+      list.push(temp.to_i)
+      temp = ''
+    end
+  end
+  list.push(temp.to_i)
+  print 'Parsed Csv: '
+  list.each { |a| print "#{a}, " }
+  print "\n"
+  $stdout.flush
+  list
+end
+
 def input
   print '>>> '
   $stdout.flush
@@ -69,7 +90,6 @@ def execute(source)
   braces = []
   puts 'Executing'
   while i < tokens.length
-    # puts "Current position: #{i}, Token: #{BrainFuck::TOKEN_INDEX[tokens[i]]}, Memory Pointer: #{memory_pointer}"
     case tokens[i]
     when BrainFuck::INC
       memory[memory_pointer] += 1
@@ -105,7 +125,7 @@ end
 def execute_csv(source, inputs)
   tokens = parse source
   input_pointer = 0
-  input = parse_csv(input)
+  input = parse_csv(inputs)
   i = 0
   memory_size = 30_000
   memory_size = memory_size.freeze
@@ -120,7 +140,8 @@ def execute_csv(source, inputs)
     when BrainFuck::DEC
       memory[memory_pointer] -= 1
     when BrainFuck::IN
-      memory[memory_pointer] = input[input_pointer] if input_pointer < input.length else puts "Error not enough inputs provided, falling back to console input"; input
+      memory[memory_pointer] = input_pointer < input.length ? input[input_pointer] : input
+      input_pointer += 1
     when BrainFuck::OUT
       puts "Output: #{memory[memory_pointer]}"
     when BrainFuck::SLF
@@ -149,7 +170,7 @@ if ARGV.empty?
 end
 
 sources = open_file ARGV[0]
-if ARGV.length < 1
+if ARGV.length < 2
   execute sources
   exit 0
 end
