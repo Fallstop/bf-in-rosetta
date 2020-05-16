@@ -19,6 +19,7 @@ Brainfuck interpreter in every launguge. Beacuse yes.
 
 ### In progress languages
 - #### Flutter App
+- #### Ruby
 
 ### Languages that were abanadend for mental health reasons
 - #### B 
