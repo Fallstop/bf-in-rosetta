@@ -3,7 +3,8 @@ Brainfuck interpreter in every launguge. Beacuse yes.
 ## <b>TAKE YA PICK</b>
 ### Currently complete languages
 - #### Rust
-    Proberly the fastest interpreter in existence, it's optimized beyond reason. It's so fast, it can easily overflow a 64bit number 500 times over in a second with our example program. Don't even think about running unchecked BF code on it beacuse it will give you an error how the Cached_data multex is poisened which caused a panic on the main thread beacuse you misplaced a bracket.
+    [![rust-bf](https://snapcraft.io//rust-bf/badge.svg)](https://snapcraft.io/rust-bf)
+    Proberly the fastest rust interpreter in existence, it's optimized beyond reason. It's so fast, it can easily overflow a 64bit number 200 times over in under a second with our example program. It's also available via snap.
 - #### Python
 - #### C++
 - #### Scratch

@@ -1,10 +1,10 @@
 name: rust-bf
-version: 1.1.0
+version: 2.0.0
 summary: A super fast brainfuck interpreter written in rust
 description: |
   rust-bf is a command line program for running 64 bit
-  brainfuck programs and outputing in decimal. The inputs
-  are declured at the start alowing for easy timing.
+  brainfuck programs at super speed. Use the --help tag to
+  find out more.
 
 base: core18
 confinement: strict
