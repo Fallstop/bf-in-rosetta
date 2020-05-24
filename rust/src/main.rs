@@ -46,7 +46,7 @@ fn macro_scan(code: &Vec<char>) -> Vec<char>{ //Condenses sequential characters 
         char_list[2] = code[i+2];
         if equal_vec(&char_list){
             for x in 3..10{
-                if code[i+x] != code[i] || x==255{
+                if code[i+x] != code[i] || x==9{
                     let macro_type  = match code[i]{
                         '>' => 'a',
                         '<' => 'b',
@@ -115,102 +115,106 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
             '+' => memory[memory_pointer] += 1,
             '-' => memory[memory_pointer] -= 1,
             ']' => {if memory[memory_pointer] != 0 {
-                        code_pointer = braces[code_pointer] as usize;    
+                        code_pointer = braces[code_pointer] as usize;
                     }},
             'a' => {code_pointer+=1; memory_pointer+=code[code_pointer] as usize; }, //>
             'b' => {code_pointer+=1; if memory_pointer != code[code_pointer] as usize-1{memory_pointer-=code[code_pointer] as usize;}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"),&config)} }, //<
             'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64;}, //+
             'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; }, //-
             '[' => {
-                if config.code_loop_cache == true { //If loop caching is enabled
-                    let arc_cache_status = Arc::clone(&caching_reference);
-                    let mut mutex_cache_status = arc_cache_status.lock().unwrap();
-                    let current_cache_status = mutex_cache_status[code_pointer];
-                    if current_cache_status == 0 {
-                        mutex_cache_status[code_pointer] = -1;
-                        drop(mutex_cache_status);
-                        let caching_data = Arc::clone(&caching_data);
-                        let code_arc = Arc::clone(&code_arc);
-                        let caching_reference = Arc::clone(&caching_reference);
-                        let mut code_pointer_local = code_pointer.clone()+1;
-                        let handle = thread::spawn(move || {
-                            thread::park_timeout(Duration::from_millis(10));
-                            let mut current_cache: LoopCacheMeta = LoopCacheMeta::new();
-                            let mut code_arc_char = code_arc[code_pointer_local];
-                            let mut able_to_be_cached: bool = true;
-                            let starting_position = code_pointer_local.clone();
-                            let mut mutex_caching_reference = caching_reference.lock().unwrap();
-                            mutex_caching_reference[starting_position] = -1;
-                            drop(mutex_caching_reference);
-                            while code_arc_char != ']' && able_to_be_cached == true{
-                                match code_arc_char {
-                                    '<' => current_cache.memory_pointer -=1,
-                                    '>' => current_cache.memory_pointer +=1,
-                                    '+' => current_cache.change_memory(1),
-                                    '-' => current_cache.change_memory(-1),
-                                    'a' => { // >
-                                        code_pointer_local+=1;
-                                        current_cache.memory_pointer += code_arc[code_pointer_local] as i32; 
-                                    }, 
-                                    'b' => { // <
-                                        code_pointer_local+=1;
-                                        current_cache.memory_pointer -= code_arc[code_pointer_local] as i32; 
-                                    }, 
-                                    'c' => { // +
-                                        code_pointer_local+=1;
-                                        current_cache.change_memory(code_arc[code_pointer_local] as i32);
-                                    },
-                                    'd' => { // -
-                                        code_pointer_local+=1;
-                                        current_cache.change_memory(-1*code_arc[code_pointer_local] as i32);
-                                    },
-                                    _   => {
-                                        able_to_be_cached = false;
-                                    },
-                                }
-                                code_pointer_local += 1;
-                                code_arc_char = code_arc[code_pointer_local];
-                            }
-                            current_cache.control_pointer = current_cache.memory_pointer as i32;
-                            if current_cache.control_pointer != 0 {
-                                able_to_be_cached = false;
-                            }
-                            if able_to_be_cached == true {
-                                current_cache.code_pointer = code_pointer_local as i32;
-                                current_cache.loop_starting_loc = starting_position as i32;
-                                let mut mutex_caching_data = caching_data.lock().unwrap();
+                if memory[memory_pointer] != 0 {
+                    if config.code_loop_cache == true { //If loop caching is enabled
+                        let arc_cache_status = Arc::clone(&caching_reference);
+                        let mut mutex_cache_status = arc_cache_status.lock().unwrap();
+                        let current_cache_status = mutex_cache_status[code_pointer];
+                        if current_cache_status == 0 {
+                            mutex_cache_status[code_pointer] = -1;
+                            drop(mutex_cache_status);
+                            let caching_data = Arc::clone(&caching_data);
+                            let code_arc = Arc::clone(&code_arc);
+                            let caching_reference = Arc::clone(&caching_reference);
+                            let mut code_pointer_local = code_pointer.clone()+1;
+                            let handle = thread::spawn(move || {
+                                thread::park_timeout(Duration::from_millis(10));
+                                let mut current_cache: LoopCacheMeta = LoopCacheMeta::new();
+                                let mut code_arc_char = code_arc[code_pointer_local];
+                                let mut able_to_be_cached: bool = true;
+                                let starting_position = code_pointer_local.clone();
                                 let mut mutex_caching_reference = caching_reference.lock().unwrap();
-                                mutex_caching_data.push(current_cache);
-                                mutex_caching_reference[starting_position-1] = mutex_caching_data.len() as i32; //One more than actual index
-                                drop(mutex_caching_data);
-                                drop(caching_data);
+                                mutex_caching_reference[starting_position] = -1;
                                 drop(mutex_caching_reference);
-                            }
-                            else { // Loop is not possible to cache
-                                drop(caching_data);
-                            }
+                                while code_arc_char != ']' && able_to_be_cached == true{
+                                    match code_arc_char {
+                                        '<' => current_cache.memory_pointer -=1,
+                                        '>' => current_cache.memory_pointer +=1,
+                                        '+' => current_cache.change_memory(1),
+                                        '-' => current_cache.change_memory(-1),
+                                        'a' => { // >
+                                            code_pointer_local+=1;
+                                            current_cache.memory_pointer += code_arc[code_pointer_local] as i32; 
+                                        }, 
+                                        'b' => { // <
+                                            code_pointer_local+=1;
+                                            current_cache.memory_pointer -= code_arc[code_pointer_local] as i32; 
+                                        }, 
+                                        'c' => { // +
+                                            code_pointer_local+=1;
+                                            current_cache.change_memory(code_arc[code_pointer_local] as i32);
+                                        },
+                                        'd' => { // -
+                                            code_pointer_local+=1;
+                                            current_cache.change_memory(-1*code_arc[code_pointer_local] as i32);
+                                        },
+                                        _   => {
+                                            able_to_be_cached = false;
+                                        },
+                                    }
+                                    code_pointer_local += 1;
+                                    code_arc_char = code_arc[code_pointer_local];
+                                }
+                                current_cache.control_pointer = current_cache.memory_pointer as i32;
+                                if current_cache.control_pointer != 0 {
+                                    able_to_be_cached = false;
+                                }
+                                if able_to_be_cached == true {
+                                    current_cache.code_pointer = code_pointer_local as i32;
+                                    current_cache.loop_starting_loc = starting_position as i32;
+                                    let mut mutex_caching_data = caching_data.lock().unwrap();
+                                    let mut mutex_caching_reference = caching_reference.lock().unwrap();
+                                    mutex_caching_data.push(current_cache);
+                                    mutex_caching_reference[starting_position-1] = mutex_caching_data.len() as i32; //One more than actual index
+                                    drop(mutex_caching_data);
+                                    drop(caching_data);
+                                    drop(mutex_caching_reference);
+                                }
+                                else { // Loop is not possible to cache
+                                    drop(caching_data);
+                                }
 
-                        });
-                        handles.push(handle);
-                    } else if current_cache_status > 0{ //Loop has been cached
-                        let mutex_cache = Arc::clone(&caching_data);
-                        let unlocked_cache = mutex_cache.lock().unwrap();
-                        let cache = unlocked_cache[current_cache_status as usize-1].clone(); //Gets the Cache obj with all the necessary info
-                        drop(mutex_cache_status);
-                        drop(unlocked_cache);
-                        let mut i: usize = 0;
-                        let control_memory =  memory[memory_pointer+cache.control_pointer as usize];
-                        while i < cache.instructions.len() {
-                            memory[memory_pointer+cache.instructions[i][0] as usize] += cache.instructions[i][1] as i64 * control_memory;
-                            i+=1;
+                            });
+                            handles.push(handle);
+                        } else if current_cache_status > 0{ //Loop has been cached
+                            let mutex_cache = Arc::clone(&caching_data);
+                            let unlocked_cache = mutex_cache.lock().unwrap();
+                            let cache = unlocked_cache[current_cache_status as usize-1].clone(); //Gets the Cache obj with all the necessary info
+                            drop(mutex_cache_status);
+                            drop(unlocked_cache);
+                            let mut i: usize = 0;
+                            let control_memory =  memory[memory_pointer+cache.control_pointer as usize];
+                            while i < cache.instructions.len() {
+                                memory[memory_pointer+cache.instructions[i][0] as usize] += cache.instructions[i][1] as i64 * control_memory;
+                                i+=1;
+                            }
+                            memory[memory_pointer+cache.control_pointer as usize] = 0;
+                            memory_pointer = add_to_usize(memory_pointer, cache.memory_pointer);
+                            code_pointer = cache.code_pointer as usize;
+
+                        } else { //Loop has already being cached or attempted to be cached, just do nothing and unlock the cache status
+                            drop(mutex_cache_status);
                         }
-                        memory[memory_pointer+cache.control_pointer as usize] = 0;
-                        memory_pointer = add_to_usize(memory_pointer, cache.memory_pointer);
-                        code_pointer = cache.code_pointer as usize;
-
-                    } else { //Loop has already being cached or attempted to be cached, just do nothing and unlock the cache status
-                        drop(mutex_cache_status);
                     }
+                } else {
+                    code_pointer = braces[code_pointer] as usize;
                 }
             },
             _ => (),
@@ -256,6 +260,7 @@ fn match_braces(config: &ConfigStruct)-> Vec<i32>{ //Match up the loop braces (M
             'scan_for_match: while x >= 0 {
                 if  bracket_left[x][0] == nested_level{
                     bracket_right.push(bracket_left[x][1]);
+                    bracket_right[bracket_left[x][1] as usize] = i as i32;
                     break 'scan_for_match;
 				}
                 x -= 1;
@@ -295,7 +300,7 @@ Switches:
     -s   | --silent -> No output at all
 
 Notes:
-    There is minimum error checking for maximum speed. You are on your own.
+    There is minimal error checking for maximum speed. You are on your own.
 
     It is recommended to make your program in another tool, as this one dose not show your bf code memory,
     but then, once done, you can run it using this one and watch it compute faster than what should be possible.
