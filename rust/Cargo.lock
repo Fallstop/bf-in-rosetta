@@ -22,12 +22,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3728d817d99e5ac407411fa471ff9800a778d88a24685968b36824eaf4bee400"
 
 [[package]]
-name = "priomutex"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31c5f30db220cf084f346c232042cc79bb6aa7de680c5d15db17351f3aa03f20"
-
-[[package]]
 name = "regex"
 version = "1.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -47,9 +41,8 @@ checksum = "7fe5bd57d1d7414c6b5ed48563a2c855d995ff777729dcd91c369ec7fea395ae"
 
 [[package]]
 name = "rust-bf"
-version = "0.1.0"
+version = "2.1.0"
 dependencies = [
- "priomutex",
  "regex",
 ]
 
