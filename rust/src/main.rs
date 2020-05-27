@@ -99,7 +99,7 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
     let code = config.code.clone();
     let mut inputs = config.inputs.clone();
     let braces = config.braces.clone();
-    let mut memory: Vec<i64> = vec!(0);
+    let mut memory: Vec<i128> = vec!(0);
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
@@ -115,7 +115,7 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
         let code_char: char = code[code_pointer];
         match code_char {
             '.' => {if config.output_type == 'd' {log(&config,format!("Output: {}",memory[memory_pointer]),1)} else {log_without_newline(&config,format!("{}",memory[memory_pointer] as u8 as char),1);}},
-            ',' => {while inputs_pointer >= inputs.len() {inputs.push(get_commandline_input(&config))} memory[memory_pointer] = inputs[inputs_pointer]; inputs_pointer +=1; },
+            ',' => {while inputs_pointer >= inputs.len() {inputs.push(get_commandline_input(&config))} memory[memory_pointer] = inputs[inputs_pointer] as i128; inputs_pointer +=1; },
             '>' => memory_pointer+=1,
             '<' => {if memory_pointer != 0{memory_pointer-=1}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"),config)}},
             '+' => memory[memory_pointer] += 1,
@@ -125,8 +125,8 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
                     }},
             'a' => {code_pointer+=1; memory_pointer+=code[code_pointer] as usize; }, //>
             'b' => {code_pointer+=1; if memory_pointer != code[code_pointer] as usize-1{memory_pointer-=code[code_pointer] as usize;}else{throw_error(15, String::from("Bad BF code, memory pointer went below zero"),&config)} }, //<
-            'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i64;}, //+
-            'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i64; }, //-
+            'c' => {code_pointer+=1; memory[memory_pointer]+=code[code_pointer] as i128;}, //+
+            'd' => {code_pointer+=1; memory[memory_pointer]-=code[code_pointer] as i128; }, //-
             '[' => {
                 if memory[memory_pointer] != 0 {
                     if config.code_loop_cache == true { //If loop caching is enabled
@@ -208,7 +208,7 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
                             let mut i: usize = 0;
                             let control_memory =  memory[memory_pointer+cache.control_pointer as usize];
                             while i < cache.instructions.len() {
-                                memory[memory_pointer+cache.instructions[i][0] as usize] += cache.instructions[i][1] as i64 * control_memory;
+                                memory[memory_pointer+cache.instructions[i][0] as usize] += cache.instructions[i][1] as i128 * control_memory;
                                 i+=1;
                             }
                             memory[memory_pointer+cache.control_pointer as usize] = 0;
