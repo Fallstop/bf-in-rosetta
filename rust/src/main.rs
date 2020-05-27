@@ -21,9 +21,15 @@ fn main() {
 }
 
 
-fn process_bf(filename: &String) -> Vec<char>{ //Read from file and remove non-command characters
-    let file_contents = fs::read_to_string(filename)
+fn process_bf(filename: &String, read_from_file: bool) -> Vec<char>{ //Read from file and remove non-command characters
+    let file_contents: String;
+    if read_from_file == true {
+        file_contents = fs::read_to_string(filename)
         .expect("Something went wrong reading the file");
+    }
+    else {
+        file_contents = filename.clone();
+    }
     let code_pre: Vec<char> = file_contents.chars().collect();
     let regex_code = Regex::new("^[\\[\\]<>+-.,,]$").unwrap();
     let mut code_post: Vec<char> = vec![];
@@ -280,21 +286,21 @@ fn get_config(args: &Vec<String>)-> ConfigStruct{ //Command line interface tool
     let mut arg: String;
     let help_text = "
 How to use: 
-    rust-bf [OPTIONS, any order]
-Min-required:
-    rust-bf -c [CodeFilename]
+    rust-bf [config, any order]
 EG:
     rust-bf -c code.bf -i 53,2 -oa
+    rust-bf -ci +++.>++.>+.>.
 Switches:
     -h   | --help -> This help text
-    -c   | --code-file -> Name/path of the BF code file
-    -i   | --inputs -> Preset inputs, comma separated
+    -c   | --code-file <NameOfFile> -> Name/path of the BF code file
+    -ci  | --code-inline <YourCodeWithoutSpaces> -> Your bf code inline
+    -i   | --inputs=<YourInputs> -> Preset inputs, comma separated
     -dcc | --disable-code-comp -> Disables the code compression algorithm which will slow the program down
     -dlc | --disable-loop-caching -> Disables the multi-threaded Loop cache algorithm which will massively slower
                                      BUT in 1 in a 1,000,000 loops, the program will hang.
                                      So if your code is freezing, try using this option.
-    -oa  | --output-in-ascii -> BF outputs are in ascii (And inputs)
-    -od  | --output-in-decimal -> BF outputs are in decimal (Default, as it is the superior flavor)
+    -a   | --output-in-ascii -> BF outputs are in ascii (And inputs)
+    -d   | --output-in-decimal -> BF outputs are in decimal (Default, as it is the superior flavor)
     -v   | --verbose -> All debug output
     -q   | --quiet -> Just the BF program output
     -s   | --silent -> No output at all
@@ -318,7 +324,8 @@ Notes:
             "-dlc" | "--disable-loop-caching" => config.code_loop_cache = false,
             "-oa" | "--output-in-ascii" => config.output_type = 'a',
             "-od" | "--output-in-decimal" => config.output_type = 'd',
-            "-c" | "--code-file" => {args_pointer+=1; config.code =  process_bf(&args[args_pointer].clone())},
+            "-c" | "--code-file" => {args_pointer+=1; config.code =  process_bf(&args[args_pointer].clone(),true)},
+            "-ci" | "--code-inline" => {args_pointer+=1; config.code =  process_bf(&args[args_pointer].clone(),false)},
             "-i" | "--inputs" => {args_pointer+=1; config.inputs = get_inputs(&args[args_pointer].clone(),&config);},
             "-v" | "--verbose" => config.print_level = 3,
             "-q" | "--quiet" => config.print_level = 1,
