@@ -157,19 +157,19 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
                                         '-' => current_cache.change_memory(-1),
                                         'a' => { // >
                                             code_pointer_local+=1;
-                                            current_cache.memory_pointer += code_arc[code_pointer_local] as i32; 
+                                            current_cache.memory_pointer += code_arc[code_pointer_local] as i64; 
                                         }, 
                                         'b' => { // <
                                             code_pointer_local+=1;
-                                            current_cache.memory_pointer -= code_arc[code_pointer_local] as i32; 
+                                            current_cache.memory_pointer -= code_arc[code_pointer_local] as i64; 
                                         }, 
                                         'c' => { // +
                                             code_pointer_local+=1;
-                                            current_cache.change_memory(code_arc[code_pointer_local] as i32);
+                                            current_cache.change_memory(code_arc[code_pointer_local] as i64);
                                         },
                                         'd' => { // -
                                             code_pointer_local+=1;
-                                            current_cache.change_memory(-1*code_arc[code_pointer_local] as i32);
+                                            current_cache.change_memory(-1*code_arc[code_pointer_local] as i64);
                                         },
                                         _   => {
                                             able_to_be_cached = false;
@@ -178,17 +178,17 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
                                     code_pointer_local += 1;
                                     code_arc_char = code_arc[code_pointer_local];
                                 }
-                                current_cache.control_pointer = current_cache.memory_pointer as i32;
+                                current_cache.control_pointer = current_cache.memory_pointer as i64;
                                 if current_cache.control_pointer != 0 {
                                     able_to_be_cached = false;
                                 }
                                 if able_to_be_cached == true {
-                                    current_cache.code_pointer = code_pointer_local as i32;
-                                    current_cache.loop_starting_loc = starting_position as i32;
+                                    current_cache.code_pointer = code_pointer_local as i64;
+                                    current_cache.loop_starting_loc = starting_position as i64;
                                     let mut mutex_caching_data = caching_data.lock().unwrap();
                                     let mut mutex_caching_reference = caching_reference.lock().unwrap();
                                     mutex_caching_data.push(current_cache);
-                                    mutex_caching_reference[starting_position-1] = mutex_caching_data.len() as i32; //One more than actual index
+                                    mutex_caching_reference[starting_position-1] = mutex_caching_data.len() as i64; //One more than actual index
                                     drop(mutex_caching_data);
                                     drop(caching_data);
                                     drop(mutex_caching_reference);
@@ -235,29 +235,29 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
         handle.join().unwrap();
     }
 }
-fn get_inputs(input_raw: &String, config: &ConfigStruct)-> Vec<i64>{ //Used in get_config to parse the inputs into a useable formate.
-    let mut inputs: Vec<i64> = vec![];
+fn get_inputs(input_raw: &String, config: &ConfigStruct)-> Vec<i128>{ //Used in get_config to parse the inputs into a useable formate.
+    let mut inputs: Vec<i128> = vec![];
     let input_split: Vec<&str> = input_raw.split(",").collect();
     for i in 0..input_split.len(){
-        if !input_split[i].parse::<i64>().is_err(){
-            inputs.push(input_split[i].parse::<i64>().unwrap());
+        if !input_split[i].parse::<i128>().is_err(){
+            inputs.push(input_split[i].parse::<i128>().unwrap());
         }
         else{
-            throw_error(5,String::from(format!("Input {} is not a number (i64)",i-1)),&config);
+            throw_error(5,String::from(format!("Input {} is not a number (i128)",i-1)),&config);
         }
         
 	}
     return inputs;
 }
-fn match_braces(config: &ConfigStruct)-> Vec<i32>{ //Match up the loop braces (Making sure that nested loops stay intact)
+fn match_braces(config: &ConfigStruct)-> Vec<i64>{ //Match up the loop braces (Making sure that nested loops stay intact)
     let code_post = config.code.clone();
-    let mut nested_level: i32 = 1;
-    let mut bracket_left: Vec<Vec<i32>> = vec!();
-    let mut bracket_right: Vec<i32> = vec!();
+    let mut nested_level: i64 = 1;
+    let mut bracket_left: Vec<Vec<i64>> = vec!();
+    let mut bracket_right: Vec<i64> = vec!();
     for i in 0..code_post.len(){
         if code_post[i] == '['{
             nested_level += 1;
-            bracket_left.push(vec!(nested_level,i as i32));
+            bracket_left.push(vec!(nested_level,i as i64));
             bracket_right.push(0);
         }
         else if code_post[i] == ']'{
@@ -266,7 +266,7 @@ fn match_braces(config: &ConfigStruct)-> Vec<i32>{ //Match up the loop braces (M
             'scan_for_match: while x >= 0 {
                 if  bracket_left[x][0] == nested_level{
                     bracket_right.push(bracket_left[x][1]);
-                    bracket_right[bracket_left[x][1] as usize] = i as i32;
+                    bracket_right[bracket_left[x][1] as usize] = i as i64;
                     break 'scan_for_match;
 				}
                 x -= 1;
@@ -346,19 +346,19 @@ fn throw_error(error_code: i32,message: std::string::String, config: &ConfigStru
     process::exit(error_code);
 }
 
-fn log(config: &ConfigStruct,message: String, log_level: i32) { //For the silent, quiet, verbose tags to work.
+fn log(config: &ConfigStruct,message: String, log_level: i64) { //For the silent, quiet, verbose tags to work.
     let global_log = config.print_level.clone();
     if log_level <= global_log {
         println!("{}",message);
     }
 }
-fn log_without_newline(config: &ConfigStruct,message: String, log_level: i32) {//Effectively same as above ^
+fn log_without_newline(config: &ConfigStruct,message: String, log_level: i64) {//Effectively same as above ^
     let global_log = config.print_level.clone();
     if log_level <= global_log {
         print!("{}",message);
     }
 }
-fn get_commandline_input (config: &ConfigStruct) -> i64 { //When the BF code requests more inputs than user supplied on the commandline
+fn get_commandline_input (config: &ConfigStruct) -> i128 { //When the BF code requests more inputs than user supplied on the commandline
     log(&config,format!("Please enter input for program: "),2);
     let _=stdout().flush();
     let mut input = String::new();
@@ -368,44 +368,44 @@ fn get_commandline_input (config: &ConfigStruct) -> i64 { //When the BF code req
         Err(error) => log(&config,format!("error: {}", error),1),
     }
     if config.output_type == 'a' {
-        let mut result: i64 = 0;
+        let mut result: i128 = 0;
         for current_char in input.trim().chars() {
-            result += current_char as u8 as i64;
+            result += current_char as u8 as i128;
         }
         log(&config,format!("ascii to int -> {}", result),2);
         return result;
     }
     else {
-        if !input.trim().parse::<i64>().is_err(){
-            return input.trim().parse::<i64>().unwrap();
+        if !input.trim().parse::<i128>().is_err(){
+            return input.trim().parse::<i128>().unwrap();
         }
         else{
-            throw_error(5,String::from(format!("Input is not a number (i64)")),&config);
+            throw_error(5,String::from(format!("Input is not a number (i128)")),&config);
             return 0;
         }
     }
 }
 
-fn add_to_usize(usize_num: usize, i32_num: i32) -> usize{ //Adding a negative number to a usize is not okay apparently to rust
-    if i32_num.is_negative() {
-        return usize_num - i32_num.wrapping_abs() as usize;
+fn add_to_usize(usize_num: usize, i64_num: i64) -> usize{ //Adding a negative number to a usize is not okay apparently to rust
+    if i64_num.is_negative() {
+        return usize_num - i64_num.wrapping_abs() as usize;
     } else {
-        return usize_num + i32_num as usize;
+        return usize_num + i64_num as usize;
     }
 }
 
 #[derive(Debug)]
 #[derive(Clone)]
 pub struct LoopCacheMeta { //Data Obj for the loop cache algorithm
-    instructions: Vec<Vec<i32>>,
-    control_pointer: i32,
-    code_pointer: i32,
-    memory_pointer: i32,
-    loop_starting_loc: i32,
+    instructions: Vec<Vec<i64>>,
+    control_pointer: i64,
+    code_pointer: i64,
+    memory_pointer: i64,
+    loop_starting_loc: i64,
 }
 impl LoopCacheMeta {
-    pub fn change_memory(&mut self, amount: i32) {
-        let mut instruction: Vec<i32> = vec!();
+    pub fn change_memory(&mut self, amount: i64) {
+        let mut instruction: Vec<i64> = vec!();
         instruction.push(self.memory_pointer);
         instruction.push(amount.clone());
         self.instructions.push(instruction);
@@ -426,9 +426,9 @@ impl LoopCacheMeta {
 #[derive(Clone)]
 pub struct ConfigStruct {
     code: Vec<char>,
-    inputs: Vec<i64>,
-    braces: Vec<i32>,
-    print_level: i32,
+    inputs: Vec<i128>,
+    braces: Vec<i64>,
+    print_level: i64,
     code_compression: bool,
     code_loop_cache: bool,
     output_type: char,
