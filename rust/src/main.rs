@@ -12,7 +12,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let mut config = get_config(&args); //Takes the args and returns a ConfigStruct with the processed Code, Inputs and default options
     if config.code_compression == true {
-        config.code = macro_scan(&config.code); //Condenses repeated characters into macros (Shortcuts) a=> b=< c=+ d=-
+        config.code = macro_scan(&config.code,&config); //Condenses repeated characters into macros (Shortcuts) a=> b=< c=+ d=-
     }
     config.braces = match_braces(&config); //Precalculates the nested loops/braces in the code
     run_bf(&config); //Steps through processed code
@@ -41,11 +41,11 @@ fn process_bf(filename: &String, read_from_file: bool) -> Vec<char>{ //Read from
     }
     return code_post;
 }
-fn macro_scan(code: &Vec<char>) -> Vec<char>{ //Condenses sequential characters 3-9 chars long.
+fn macro_scan(code: &Vec<char>, config: &ConfigStruct) -> Vec<char>{ //Condenses sequential characters 3-9 chars long.
     let mut code_macro: Vec<char>=vec!();
     let mut char_list: Vec<char>=vec!('0','0','0');
     let mut i: usize=0;
-    
+    log(&config,String::from("Compressing bf code..."),2);
     while i < code.len()-3{
         char_list[0] = code[i];
         char_list[1] = code[i+1];
@@ -60,7 +60,7 @@ fn macro_scan(code: &Vec<char>) -> Vec<char>{ //Condenses sequential characters 
                         '-' => 'd',
                          _ => 'z',
                     };
-                    if macro_type == 'z'{code_macro.push(code[i]);break;}//Don't want to macro things like ",.[]"
+                    if macro_type == 'z'{code_macro.push(code[i]);i+=1;break;}//Don't want to macro things like ",.[]"
                     code_macro.push(macro_type);
                     code_macro.push(x as u8 as char);
                     i+=x;
@@ -88,7 +88,7 @@ fn equal_vec(arr: &Vec<char>) -> bool { //Used in the macro-code to make sure 3 
 
 fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
     /*
-    Takes the config with all the data required
+    Takes the config with all the data required and executes the code
 
     Loop cache routine
         When the normal routine encounters the start of a loop, instead of doing nothing, if enabled,
@@ -112,6 +112,7 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
         log_without_newline(&config,format!("Output: "),2);
     }
     while code_pointer < code.len() as usize{
+        // thread::sleep(Duration::from_micros(1000));
         let code_char: char = code[code_pointer];
         match code_char {
             '.' => {if config.output_type == 'd' {log(&config,format!("Output: {}",memory[memory_pointer]),1)} else {log_without_newline(&config,format!("{}",memory[memory_pointer] as u8 as char),1);}},
@@ -213,7 +214,9 @@ fn run_bf(config: &ConfigStruct){ //Primary runtime - Run after all preparations
                             }
                             memory[memory_pointer+cache.control_pointer as usize] = 0;
                             memory_pointer = add_to_usize(memory_pointer, cache.memory_pointer);
+                            log(&config,String::from(format!("\nUsing Loop cache {} at code point {}, skipping {} loop iterations",current_cache_status as usize-1,code_pointer,control_memory)),3);
                             code_pointer = cache.code_pointer as usize;
+                            
 
                         } else { //Loop has already being cached or attempted to be cached, just do nothing and unlock the cache status
                             drop(mutex_cache_status);
@@ -250,6 +253,7 @@ fn get_inputs(input_raw: &String, config: &ConfigStruct)-> Vec<i128>{ //Used in 
     return inputs;
 }
 fn match_braces(config: &ConfigStruct)-> Vec<i64>{ //Match up the loop braces (Making sure that nested loops stay intact)
+    log(&config,String::from("Pre-matching braces..."),2);
     let code_post = config.code.clone();
     let mut nested_level: i64 = 1;
     let mut bracket_left: Vec<Vec<i64>> = vec!();
@@ -299,8 +303,8 @@ Switches:
     -dlc | --disable-loop-caching -> Disables the multi-threaded Loop cache algorithm which will massively slower
                                      BUT in 1 in a 1,000,000 loops, the program will hang.
                                      So if your code is freezing, try using this option.
-    -a   | --output-in-ascii -> BF outputs are in ascii (And inputs)
-    -d   | --output-in-decimal -> BF outputs are in decimal (Default, as it is the superior flavor)
+    -oa   | --output-in-ascii -> BF outputs are in ascii (And inputs)
+    -od   | --output-in-decimal -> BF outputs are in decimal (Default, as it is the superior flavor)
     -v   | --verbose -> All debug output
     -q   | --quiet -> Just the BF program output
     -s   | --silent -> No output at all

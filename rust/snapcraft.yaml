@@ -1,5 +1,5 @@
 name: rust-bf
-version: 3.0.1
+version: 3.0.2
 summary: A super fast 128-bit brainfuck interpreter written in rust
 description: |
   rust-bf is a command line program for running 128 bit
