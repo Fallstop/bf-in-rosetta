@@ -113,6 +113,8 @@ fn run_bf(config: &ConfigStruct) {
     while code_pointer < code.len() as usize {
         // thread::sleep(Duration::from_micros(1000));
         let code_char: char = code[code_pointer];
+        log(&config,format!("Code: {:?}, Memory: {:?}, Memory Pointer: {:?}, Current Cell: {:?}",code_char,memory,memory_pointer,memory[memory_pointer]), 3);
+
         match code_char {
             '.' => {
                 if config.output_type == 'd' {
@@ -189,6 +191,7 @@ fn run_bf(config: &ConfigStruct) {
                             let starting_position = code_pointer_local.clone();
                             caching_reference[starting_position] = -1;
                             while code_char != ']' && able_to_be_cached == true {
+                                
                                 match code_char {
                                     '<' => current_cache.memory_pointer -= 1,
                                     '>' => current_cache.memory_pointer += 1,
@@ -228,32 +231,25 @@ fn run_bf(config: &ConfigStruct) {
                                     able_to_be_cached = false;
                                 }
                                 if able_to_be_cached == true {
+                                    println!("able to be cached");
                                     current_cache.code_pointer = code_pointer_local as i64;
                                     current_cache.loop_starting_loc = starting_position as i64;
                                     caching_data.push(current_cache.clone());
                                     caching_reference[starting_position - 1] =
                                         caching_data.len() as i64; //One more than actual index
+                                    use_loop_cache(&caching_data, caching_data.len() as i64, &mut memory, &mut memory_pointer, config, &mut code_pointer);
+                                    
                                 }
                             }
+                            
                         } else if current_cache_status > 0 {
                             //Loop has been cached
-                            let cache = caching_data[current_cache_status as usize - 1].clone(); //Gets the Cache obj with all the necessary info
-                            let mut i: usize = 0;
-                            let control_memory =
-                                memory[memory_pointer + cache.control_pointer as usize];
-                            while i < cache.instructions.len() {
-                                memory[memory_pointer + cache.instructions[i][0] as usize] +=
-                                    cache.instructions[i][1] as i128 * control_memory;
-                                i += 1;
-                            }
-                            memory[memory_pointer + cache.control_pointer as usize] = 0;
-                            memory_pointer = add_to_usize(memory_pointer, cache.memory_pointer);
-                            log(&config,String::from(format!("\nUsing Loop cache {} at code point {}, skipping {} loop iterations",current_cache_status as usize-1,code_pointer,control_memory)),3);
-                            code_pointer = cache.code_pointer as usize;
+                            use_loop_cache(&caching_data, current_cache_status, &mut memory, &mut memory_pointer, config, &mut code_pointer);
                         }
                     }
                 } else {
                     code_pointer = braces[code_pointer] as usize;
+
                 }
             }
             _ => (),
@@ -264,6 +260,23 @@ fn run_bf(config: &ConfigStruct) {
         }
     }
     log(&config, format!("\nBF execution done"), 2);
+}
+
+fn use_loop_cache(caching_data: &Vec<LoopCacheMeta>, current_cache_status: i64, memory: &mut Vec<i128>, memory_pointer: &mut usize, config: &ConfigStruct, code_pointer: &mut usize) {
+    log(&config,String::from(format!("\nLoop: {:?} ",caching_data[current_cache_status as usize - 1].clone())),3);
+    let cache = caching_data[current_cache_status as usize - 1].clone();
+    let mut i: usize = 0;
+    let control_memory =
+        memory[*memory_pointer + cache.control_pointer as usize];
+    while i < cache.instructions.len() {
+        memory[*memory_pointer + cache.instructions[i][0] as usize] +=
+            cache.instructions[i][1] as i128 * control_memory;
+        i += 1;
+    }
+    memory[*memory_pointer + cache.control_pointer as usize] = 0;
+    *memory_pointer = add_to_usize(*memory_pointer, cache.memory_pointer);
+    log(&config,String::from(format!("\nUsing Loop cache {} at code point {}, skipping {} loop iterations",current_cache_status as usize-1,code_pointer,control_memory)),3);
+    *code_pointer = cache.code_pointer as usize;
 }
 fn get_inputs(input_raw: &String, config: &ConfigStruct) -> Vec<i128> {
     //Used in get_config to parse the inputs into a useable formate.
