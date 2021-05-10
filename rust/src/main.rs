@@ -100,12 +100,12 @@ fn run_bf(config: &ConfigStruct) {
     let code = config.code.clone();
     let mut inputs = config.inputs.clone();
     let braces = config.braces.clone();
-    let mut memory: Vec<i128> = vec![0];
+    let mut memory: Vec<u8> = vec![0];
     let mut memory_pointer: usize = 0;
     let mut code_pointer: usize = 0;
     let mut inputs_pointer: usize = 0;
     let mut caching_data = vec![];
-    let mut caching_reference = vec![0; code.len()];
+    let mut caching_reference = vec![0i8; code.len()];
     log(&config, format!("Variables Initialized"), 3);
     if config.output_type == 'a' {
         log_without_newline(&config, format!("Output: "), 2);
@@ -114,7 +114,14 @@ fn run_bf(config: &ConfigStruct) {
         // thread::sleep(Duration::from_micros(1000));
         let code_char: char = code[code_pointer];
         log(&config,format!("Code: {:?}, Memory: {:?}, Memory Pointer: {:?}, Current Cell: {:?}",code_char,memory,memory_pointer,memory[memory_pointer]), 3);
+        if code_pointer==83 {
+            log(&config,format!("Code: {:?}, Memory: {:?}, Memory Pointer: {:?}, Current Cell: {:?}",code_char,memory,memory_pointer,memory[memory_pointer]), 3);
 
+        }
+        if code_pointer<83 {
+            log(&config,format!("Code: {:?}, Memory: {:?}, Memory Pointer: {:?}, Current Cell: {:?}",code_char,memory,memory_pointer,memory[memory_pointer]), 3);
+
+        }
         match code_char {
             '.' => {
                 if config.output_type == 'd' {
@@ -131,8 +138,9 @@ fn run_bf(config: &ConfigStruct) {
                 while inputs_pointer >= inputs.len() {
                     inputs.push(get_commandline_input(&config))
                 }
-                memory[memory_pointer] = inputs[inputs_pointer] as i128;
+                memory[memory_pointer] = inputs[inputs_pointer] as u8;
                 inputs_pointer += 1;
+                
             }
             '>' => memory_pointer += 1,
             '<' => {
@@ -150,6 +158,9 @@ fn run_bf(config: &ConfigStruct) {
             '-' => memory[memory_pointer] -= 1,
             ']' => {
                 if memory[memory_pointer] != 0 {
+                    if braces[code_pointer] == 0 {
+                        print!("Bad braces, at {:?} in data {:?}",code_pointer,braces)
+                    }
                     code_pointer = braces[code_pointer] as usize;
                 }
             }
@@ -171,11 +182,11 @@ fn run_bf(config: &ConfigStruct) {
             } //<
             'c' => {
                 code_pointer += 1;
-                memory[memory_pointer] += code[code_pointer] as i128;
+                memory[memory_pointer] += code[code_pointer] as u8;
             } //+
             'd' => {
                 code_pointer += 1;
-                memory[memory_pointer] -= code[code_pointer] as i128;
+                memory[memory_pointer] -= code[code_pointer] as u8;
             } //-
             '[' => {
                 if memory[memory_pointer] != 0 {
@@ -201,24 +212,24 @@ fn run_bf(config: &ConfigStruct) {
                                         // >
                                         code_pointer_local += 1;
                                         current_cache.memory_pointer +=
-                                            code[code_pointer_local] as i128;
+                                            code[code_pointer_local] as u8;
                                     }
                                     'b' => {
                                         // <
                                         code_pointer_local += 1;
-                                        current_cache.memory_pointer -= code[code_pointer_local] as i128;
+                                        current_cache.memory_pointer -= code[code_pointer_local] as u8;
                                     }
                                     'c' => {
                                         // +
                                         code_pointer_local += 1;
                                         current_cache
-                                            .change_memory(code[code_pointer_local] as i128);
+                                            .change_memory(code[code_pointer_local] as i8);
                                     }
                                     'd' => {
                                         // -
                                         code_pointer_local += 1;
                                         current_cache
-                                            .change_memory(-1 * code[code_pointer_local] as i128);
+                                            .change_memory(-1 * code[code_pointer_local] as i8);
                                     }
                                     _ => {
                                         able_to_be_cached = false;
@@ -228,18 +239,18 @@ fn run_bf(config: &ConfigStruct) {
                                 code_char = code[code_pointer_local];
                                 }
                                 
-                                current_cache.control_pointer = current_cache.memory_pointer as i128;
+                                current_cache.control_pointer = current_cache.memory_pointer as u8;
                                 if current_cache.control_pointer != 0 {
                                     able_to_be_cached = false;
                                 } 
                                 if able_to_be_cached == true {
                                     log(&config, format!("Current Loop is cache-able!"), 3);
-                                    current_cache.code_pointer = code_pointer_local as i128;
-                                    current_cache.loop_starting_loc = starting_position as i128;
+                                    current_cache.code_pointer = code_pointer_local as u8;
+                                    current_cache.loop_starting_loc = starting_position as u8;
                                     caching_data.push(current_cache.clone());
                                     caching_reference[starting_position - 1] =
-                                        caching_data.len() as i64; //One more than actual index
-                                    use_loop_cache(&caching_data, caching_data.len() as i64, &mut memory, &mut memory_pointer, config, &mut code_pointer);
+                                        caching_data.len() as i8; //One more than actual index
+                                    use_loop_cache(&caching_data, caching_data.len() as i8, &mut memory, &mut memory_pointer, config, &mut code_pointer);
                                     
                                 }
                             
@@ -249,6 +260,9 @@ fn run_bf(config: &ConfigStruct) {
                         }
                     }
                 } else {
+                    if braces[code_pointer] == 0 {
+                        print!("Bad braces, at {:?} in data {:?}",code_pointer,braces)
+                    }
                     code_pointer = braces[code_pointer] as usize;
 
                 }
@@ -263,71 +277,70 @@ fn run_bf(config: &ConfigStruct) {
     log(&config, format!("\nBF execution done"), 2);
 }
 
-fn use_loop_cache(caching_data: &Vec<LoopCacheMeta>, current_cache_status: i64, memory: &mut Vec<i128>, memory_pointer: &mut usize, config: &ConfigStruct, code_pointer: &mut usize) {
+fn use_loop_cache(caching_data: &Vec<LoopCacheMeta>, current_cache_status: i8, memory: &mut Vec<u8>, memory_pointer: &mut usize, config: &ConfigStruct, code_pointer: &mut usize) {
     log(&config,String::from(format!("\nLoop: {:?} ",caching_data[current_cache_status as usize - 1].clone())),3);
     let cache = caching_data[current_cache_status as usize - 1].clone();
     let mut i: usize = 0;
     let control_memory =
         memory[*memory_pointer + cache.control_pointer as usize].clone();
     while i < cache.instructions.len() {
-        while (cache.instructions[i].0 + *memory_pointer as i128) as usize >= memory.len() - 1 {
+        while (cache.instructions[i].0 + *memory_pointer as u8) as usize >= memory.len() - 1 {
             memory.push(0);
         }
-        log(&config,String::from(format!("Modifing {:?} by {:?} at position {:?} in memory {:?}",memory[(cache.instructions[i].0 + *memory_pointer as i128) as usize],cache.instructions[i].1 * control_memory, (cache.instructions[i].0 + *memory_pointer as i128), memory)),3);;
-        memory[(cache.instructions[i].0 + *memory_pointer as i128) as usize] +=
-            cache.instructions[i].1 * control_memory;
+        log(&config,String::from(format!("Modifing {:?} by {:?} at position {:?} in memory {:?}",memory[(cache.instructions[i].0 + *memory_pointer as u8) as usize],cache.instructions[i].1 * control_memory as i8, (cache.instructions[i].0 + *memory_pointer as u8), memory)),3);
+        memory[(cache.instructions[i].0 + *memory_pointer as u8) as usize] = (memory[(cache.instructions[i].0 + *memory_pointer as u8) as usize] as i8 + (cache.instructions[i].1 * control_memory as i8)) as u8; 
         i += 1;
 
     }
     memory[*memory_pointer + cache.control_pointer as usize] = 0;
-    *memory_pointer = add_to_usize(*memory_pointer, cache.memory_pointer);
+    *memory_pointer = *memory_pointer + cache.memory_pointer as usize;
     log(&config,String::from(format!("\nUsing Loop cache {} at code point {}, skipping {} loop iterations",current_cache_status as usize-1,code_pointer,control_memory)),3);
     *code_pointer = cache.code_pointer as usize;
 }
 
-fn get_inputs(input_raw: &String, config: &ConfigStruct) -> Vec<i128> {
+fn get_inputs(input_raw: &String, config: &ConfigStruct) -> Vec<u8> {
     //Used in get_config to parse the inputs into a useable formate.
-    let mut inputs: Vec<i128> = vec![];
+    let mut inputs: Vec<u8> = vec![];
     let input_split: Vec<&str> = input_raw.split(",").collect();
     for i in 0..input_split.len() {
-        if !input_split[i].parse::<i128>().is_err() {
-            inputs.push(input_split[i].parse::<i128>().unwrap());
+        if !input_split[i].parse::<u8>().is_err() {
+            inputs.push(input_split[i].parse::<u8>().unwrap());
         } else {
             throw_error(
                 5,
-                String::from(format!("Input {} is not a number (i128)", i - 1)),
+                String::from(format!("Input {} is not a number (u8)", i - 1)),
                 &config,
             );
         }
     }
     return inputs;
 }
-fn match_braces(config: &ConfigStruct) -> Vec<i64> {
+fn match_braces(config: &ConfigStruct) -> Vec<usize> {
     //Match up the loop braces (Making sure that nested loops stay intact)
     log(&config, String::from("Pre-matching braces..."), 2);
     let code_post = config.code.clone();
-    let mut nested_level: i64 = 1;
-    let mut bracket_left: Vec<Vec<i64>> = vec![];
-    let mut bracket_right: Vec<i64> = vec![];
+    let mut nested_level: u8 = 1;
+    let mut bracket_left: Vec<(u8,usize)> = vec![];
+    let mut bracket_right: Vec<usize> = vec![];
     for i in 0..code_post.len() {
         if code_post[i] == '[' {
             nested_level += 1;
-            bracket_left.push(vec![nested_level, i as i64]);
+            bracket_left.push((nested_level, i));
             bracket_right.push(0);
         } else if code_post[i] == ']' {
             let mut x: usize = bracket_left.len() - 1;
             #[allow(unused_comparisons)]
             'scan_for_match: while x >= 0 {
-                if bracket_left[x][0] == nested_level {
-                    bracket_right.push(bracket_left[x][1]);
-                    bracket_right[bracket_left[x][1] as usize] = i as i64;
+                if bracket_left[x].0 == nested_level {
+                    bracket_right.push(bracket_left[x].1);
+                    bracket_right[bracket_left[x].1 as usize] = i;
                     break 'scan_for_match;
                 }
                 x -= 1;
             }
             nested_level -= 1;
         } else {
-            bracket_right.push(-2);
+            bracket_right.push(0);
         }
     }
     return bracket_right;
@@ -424,21 +437,21 @@ fn throw_error(error_code: i32, message: std::string::String, config: &ConfigStr
     process::exit(error_code);
 }
 
-fn log(config: &ConfigStruct, message: String, log_level: i64) {
+fn log(config: &ConfigStruct, message: String, log_level: u8) {
     //For the silent, quiet, verbose tags to work.
     let global_log = config.print_level.clone();
     if log_level <= global_log {
         println!("{}", message);
     }
 }
-fn log_without_newline(config: &ConfigStruct, message: String, log_level: i64) {
+fn log_without_newline(config: &ConfigStruct, message: String, log_level: u8) {
     //Effectively same as above ^
     let global_log = config.print_level.clone();
     if log_level <= global_log {
         print!("{}", message);
     }
 }
-fn get_commandline_input(config: &ConfigStruct) -> i128 {
+fn get_commandline_input(config: &ConfigStruct) -> u8 {
     //When the BF code requests more inputs than user supplied on the commandline
     log(&config, format!("Please enter input for program: "), 2);
     let _ = stdout().flush();
@@ -448,19 +461,19 @@ fn get_commandline_input(config: &ConfigStruct) -> i128 {
         Err(error) => log(&config, format!("error: {}", error), 1),
     }
     if config.output_type == 'a' {
-        let mut result: i128 = 0;
+        let mut result: u8 = 0;
         for current_char in input.trim().chars() {
-            result += current_char as u8 as i128;
+            result += current_char as u8 as u8;
         }
         log(&config, format!("ascii to int -> {}", result), 2);
         return result;
     } else {
-        if !input.trim().parse::<i128>().is_err() {
-            return input.trim().parse::<i128>().unwrap();
+        if !input.trim().parse::<u8>().is_err() {
+            return input.trim().parse::<u8>().unwrap();
         } else {
             throw_error(
                 5,
-                String::from(format!("Input is not a number (i128)")),
+                String::from(format!("Input is not a number (u8)")),
                 &config,
             );
             return 0;
@@ -468,26 +481,26 @@ fn get_commandline_input(config: &ConfigStruct) -> i128 {
     }
 }
 
-fn add_to_usize(usize_num: usize, i64_num: i128) -> usize {
-    //Adding a negative number to a usize is not okay apparently to rust
-    if i64_num.is_negative() {
-        return usize_num - i64_num.wrapping_abs() as usize;
-    } else {
-        return usize_num + i64_num as usize;
-    }
-}
+// fn add_to_usize(usize_num: usize, u8_num: u8) -> usize {
+//     //Adding a negative number to a usize is not okay apparently to rust
+//     if u8_num.is_negative() {
+//         return usize_num - u8_num.wrapping_abs() as usize;
+//     } else {
+//         return usize_num + u8_num as usize;
+//     }
+// }
 
 #[derive(Debug, Clone)]
 pub struct LoopCacheMeta {
     //Data Obj for the loop cache algorithm
-    instructions: Vec<(i128,i128)>,
-    control_pointer: i128,
-    code_pointer: i128,
-    memory_pointer: i128,
-    loop_starting_loc: i128,
+    instructions: Vec<(u8,i8)>,
+    control_pointer: u8,
+    code_pointer: u8,
+    memory_pointer: u8,
+    loop_starting_loc: u8,
 }
 impl LoopCacheMeta {
-    pub fn change_memory(&mut self, amount: i128) {
+    pub fn change_memory(&mut self, amount: i8) {
         self.instructions.push((self.memory_pointer,amount.clone()));
         return;
     }
@@ -505,9 +518,9 @@ impl LoopCacheMeta {
 #[derive(Debug, Clone)]
 pub struct ConfigStruct {
     code: Vec<char>,
-    inputs: Vec<i128>,
-    braces: Vec<i64>,
-    print_level: i64,
+    inputs: Vec<u8>,
+    braces: Vec<usize>,
+    print_level: u8,
     code_compression: bool,
     code_loop_cache: bool,
     output_type: char,
