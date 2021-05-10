@@ -191,7 +191,7 @@ fn run_bf(config: &ConfigStruct) {
                             let starting_position = code_pointer_local.clone();
                             caching_reference[starting_position] = -1;
                             while code_char != ']' && able_to_be_cached == true {
-                                
+                                log(&config,format!("CACHING: Code: {:?}, MetaData {:?}",code_char,current_cache), 3);
                                 match code_char {
                                     '<' => current_cache.memory_pointer -= 1,
                                     '>' => current_cache.memory_pointer += 1,
@@ -201,24 +201,24 @@ fn run_bf(config: &ConfigStruct) {
                                         // >
                                         code_pointer_local += 1;
                                         current_cache.memory_pointer +=
-                                            code[code_pointer_local] as i64;
+                                            code[code_pointer_local] as i128;
                                     }
                                     'b' => {
                                         // <
                                         code_pointer_local += 1;
-                                        current_cache.memory_pointer -= code[code_pointer_local] as i64;
+                                        current_cache.memory_pointer -= code[code_pointer_local] as i128;
                                     }
                                     'c' => {
                                         // +
                                         code_pointer_local += 1;
                                         current_cache
-                                            .change_memory(code[code_pointer_local] as i64);
+                                            .change_memory(code[code_pointer_local] as i128);
                                     }
                                     'd' => {
                                         // -
                                         code_pointer_local += 1;
                                         current_cache
-                                            .change_memory(-1 * code[code_pointer_local] as i64);
+                                            .change_memory(-1 * code[code_pointer_local] as i128);
                                     }
                                     _ => {
                                         able_to_be_cached = false;
@@ -226,21 +226,22 @@ fn run_bf(config: &ConfigStruct) {
                                 }
                                 code_pointer_local += 1;
                                 code_char = code[code_pointer_local];
-                                current_cache.control_pointer = current_cache.memory_pointer as i64;
+                                }
+                                
+                                current_cache.control_pointer = current_cache.memory_pointer as i128;
                                 if current_cache.control_pointer != 0 {
                                     able_to_be_cached = false;
-                                }
+                                } 
                                 if able_to_be_cached == true {
-                                    println!("able to be cached");
-                                    current_cache.code_pointer = code_pointer_local as i64;
-                                    current_cache.loop_starting_loc = starting_position as i64;
+                                    log(&config, format!("Current Loop is cache-able!"), 3);
+                                    current_cache.code_pointer = code_pointer_local as i128;
+                                    current_cache.loop_starting_loc = starting_position as i128;
                                     caching_data.push(current_cache.clone());
                                     caching_reference[starting_position - 1] =
                                         caching_data.len() as i64; //One more than actual index
                                     use_loop_cache(&caching_data, caching_data.len() as i64, &mut memory, &mut memory_pointer, config, &mut code_pointer);
                                     
                                 }
-                            }
                             
                         } else if current_cache_status > 0 {
                             //Loop has been cached
@@ -267,17 +268,23 @@ fn use_loop_cache(caching_data: &Vec<LoopCacheMeta>, current_cache_status: i64, 
     let cache = caching_data[current_cache_status as usize - 1].clone();
     let mut i: usize = 0;
     let control_memory =
-        memory[*memory_pointer + cache.control_pointer as usize];
+        memory[*memory_pointer + cache.control_pointer as usize].clone();
     while i < cache.instructions.len() {
-        memory[*memory_pointer + cache.instructions[i][0] as usize] +=
-            cache.instructions[i][1] as i128 * control_memory;
+        while (cache.instructions[i].0 + *memory_pointer as i128) as usize >= memory.len() - 1 {
+            memory.push(0);
+        }
+        log(&config,String::from(format!("Modifing {:?} by {:?} at position {:?} in memory {:?}",memory[(cache.instructions[i].0 + *memory_pointer as i128) as usize],cache.instructions[i].1 * control_memory, (cache.instructions[i].0 + *memory_pointer as i128), memory)),3);;
+        memory[(cache.instructions[i].0 + *memory_pointer as i128) as usize] +=
+            cache.instructions[i].1 * control_memory;
         i += 1;
+
     }
     memory[*memory_pointer + cache.control_pointer as usize] = 0;
     *memory_pointer = add_to_usize(*memory_pointer, cache.memory_pointer);
     log(&config,String::from(format!("\nUsing Loop cache {} at code point {}, skipping {} loop iterations",current_cache_status as usize-1,code_pointer,control_memory)),3);
     *code_pointer = cache.code_pointer as usize;
 }
+
 fn get_inputs(input_raw: &String, config: &ConfigStruct) -> Vec<i128> {
     //Used in get_config to parse the inputs into a useable formate.
     let mut inputs: Vec<i128> = vec![];
@@ -342,21 +349,18 @@ Switches:
     -c   | --code-file <NameOfFile> -> Name/path of the BF code file
     -ci  | --code-inline <YourCodeWithoutSpaces> -> Your bf code inline
     -i   | --inputs=<YourInputs> -> Preset inputs, comma separated
-    -dcc | --disable-code-comp -> Disables the code compression algorithm which will slow the program down
-    -dlc | --disable-loop-caching -> Disables the multi-threaded Loop cache algorithm which will massively slower
-                                     BUT in 1 in a 1,000,000 loops, the program will hang.
-                                     So if your code is freezing, try using this option.
+    -dcc | --disable-code-comp -> Disables the code compression algorithm which will slow the interpreter down
+    -dlc | --disable-loop-caching -> Disables the Loop cache algorithm which will make it massively slower.
     -oa   | --output-in-ascii -> BF outputs are in ascii (And inputs)
     -od   | --output-in-decimal -> BF outputs are in decimal (Default, as it is the superior flavor)
-    -v   | --verbose -> All debug output
+    -v   | --verbose -> All debug output, which is quite allot of output
     -q   | --quiet -> Just the BF program output
     -s   | --silent -> No output at all
 
 Notes:
-    There is minimal error checking for maximum speed. You are on your own.
+    There is minimal error checking for maximum speed, so the program will quit out if the BF program dose something stupid.
 
-    It is recommended to make your program in another tool, as this one dose not show your bf code memory,
-    but then, once done, you can run it using this one and watch it compute faster than what should be possible.
+    PS: The deadlock problem has been fixed recently.
     ";
     if args.len() == 1 {
         log(&config, format!("{}", help_text), 2);
@@ -464,7 +468,7 @@ fn get_commandline_input(config: &ConfigStruct) -> i128 {
     }
 }
 
-fn add_to_usize(usize_num: usize, i64_num: i64) -> usize {
+fn add_to_usize(usize_num: usize, i64_num: i128) -> usize {
     //Adding a negative number to a usize is not okay apparently to rust
     if i64_num.is_negative() {
         return usize_num - i64_num.wrapping_abs() as usize;
@@ -476,18 +480,15 @@ fn add_to_usize(usize_num: usize, i64_num: i64) -> usize {
 #[derive(Debug, Clone)]
 pub struct LoopCacheMeta {
     //Data Obj for the loop cache algorithm
-    instructions: Vec<Vec<i64>>,
-    control_pointer: i64,
-    code_pointer: i64,
-    memory_pointer: i64,
-    loop_starting_loc: i64,
+    instructions: Vec<(i128,i128)>,
+    control_pointer: i128,
+    code_pointer: i128,
+    memory_pointer: i128,
+    loop_starting_loc: i128,
 }
 impl LoopCacheMeta {
-    pub fn change_memory(&mut self, amount: i64) {
-        let mut instruction: Vec<i64> = vec![];
-        instruction.push(self.memory_pointer);
-        instruction.push(amount.clone());
-        self.instructions.push(instruction);
+    pub fn change_memory(&mut self, amount: i128) {
+        self.instructions.push((self.memory_pointer,amount.clone()));
         return;
     }
     pub fn new() -> LoopCacheMeta {
