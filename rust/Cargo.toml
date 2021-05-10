@@ -8,7 +8,6 @@ edition = "2018"
 
 [profile.dev]
 opt-level = 0
-overflow-checks = false
 
 [profile.release]
 opt-level = 3
