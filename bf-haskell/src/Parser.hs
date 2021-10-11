@@ -1,9 +1,9 @@
-{-# LANGUAGE LambdaCase #-}
-
 -- BIG THANKS TO VIDEO BY TSCODING, https://www.youtube.com/watch?v=N9RUqGYuGfw&t=5128s&ab_channel=Tsoding, BIG HELP
 
 module Parser
-  ( parseBfTokens,
+  ( bfParser,
+    runParser,
+    Parser,
   )
 where
 
@@ -69,4 +69,10 @@ parseRight :: Parser BFToken
 parseRight = BfRight <$ charP '>'
 
 parseLoop :: Parser BFToken
-parseLoop = BfLoop <$> (charP <* charP ']')
+parseLoop = BfLoop <$> (charP '[' *> bfTokens <* charP ']')
+
+bfTokens :: Parser [BFToken]
+bfTokens = many (parseRight <|> parseLeft <|> parseAdd <|> parseSub <|> parseIn <|> parseOut <|> parseLoop)
+
+bfParser :: Parser [BFToken]
+bfParser = Parser $ \input -> runParser bfTokens (filter (\v -> v == '+' || v == '-' || v == '.' || v == ',' || v == '<' || v == '>' || v == '[' || v == ']') input)
