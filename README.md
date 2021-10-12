@@ -24,6 +24,7 @@ Brainfuck interpreter in every launguge. Beacuse yes.
 
 ### In progress languages
 - #### Swift
+- #### Haskell
 
 ### Languages that were abandoned for mental health reasons
 - #### B 

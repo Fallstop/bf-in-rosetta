@@ -1,9 +1,10 @@
--- BIG THANKS TO VIDEO BY TSCODING, https://www.youtube.com/watch?v=N9RUqGYuGfw&t=5128s&ab_channel=Tsoding, BIG HELP
+-- BIG THANKS TO VIDEO BY TSODING, https://www.youtube.com/watch?v=N9RUqGYuGfw&t=5128s&ab_channel=Tsoding, BIG HELP
 
 module Parser
   ( bfParser,
     runParser,
     Parser,
+    BFToken (..),
   )
 where
 
