@@ -3,9 +3,12 @@
 module Main where
 
 import Control.Monad
+import Data.Char
 import Data.Maybe
+import Interpreter
 import Parser
 import System.IO
+import Text.Printf
 
 getInput :: String -> IO String
 getInput text = do
@@ -25,7 +28,7 @@ main = do
 
   -- Will only get as many inputs as there are commas in the source code
   inputs <-
-    forM_
+    forM
       [ 1
         .. length
           ( filter
@@ -38,4 +41,16 @@ main = do
       ]
       (\i -> getInput (show i ++ " ?> "))
 
-  putStrLn ""
+  let inputsParsed =
+        map
+          ( \case
+              "" -> 0
+              x -> read x :: Int
+          )
+          inputs
+
+  putStrLn "Inputs: "
+  forM_ inputsParsed (printf "%d\n")
+  let z = runBf tokens inputsParsed
+  putStrLn "Outputs: "
+  forM_ (outputs z) (printf "%d\n")
