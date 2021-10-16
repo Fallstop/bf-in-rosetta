@@ -21,10 +21,11 @@ Brainfuck interpreter in every launguge. Beacuse yes.
 - #### Ruby
 - #### [Brainfuck-Shell](https://github.com/Fallstop/brainfuck-shell)
     Fully functioning shell that parses the input as Brainfuck and runs the result.
+- #### Haskell
+    Not as hard as I though it would be to check this one of
 
 ### In progress languages
 - #### Swift
-- #### Haskell
 
 ### Languages that were abandoned for mental health reasons
 - #### B 
