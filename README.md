@@ -26,7 +26,7 @@ Brainfuck interpreter in every launguge. Beacuse yes.
 
 ### In progress languages
 - #### Swift
-
+- #### C
 ### Languages that were abandoned for mental health reasons
 - #### B 
     Devlopment stoped beacuse we could not find a working compiler that both compiled and not get rid of random varibles in the program (*Flashbacks intensify*).

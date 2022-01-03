@@ -12,3 +12,5 @@ typescript/dist
 go/.idea
 go/bin
 ruby/.idea
+c/cmake-build-*
+c/.idea
