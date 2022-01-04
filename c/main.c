@@ -1,52 +1,78 @@
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "sized_string.h"
+#include "runner.h"
 
-typedef struct JumpAddress {
-	struct JumpAddress *prev_address;
-	int addr;
-} JumpAddress;
+SizedString *read_to_string(char *);
 
-typedef struct SizedString {
-	int len;
-	char *str;
-} SizedString;
+void print_help(void);
 
-SizedString *new_sized_string(char first_val) {
-	SizedString *s = malloc(sizeof(SizedString));
-	s->len = 1;
-	s->str = malloc(sizeof(char));
-	s->str[0] = first_val;
+void print_about(void);
 
-	return s;
-}
+int main(int argc, char *argv[]) {
+	char ascii = 1;
+	char verbose = 0;
+	char help = 0;
 
-SizedString *sized_string_copy(SizedString str) {
-	SizedString *ss = malloc(sizeof(SizedString));
-	ss->len = str.len;
-	ss->str = malloc((sizeof(char)) * ss->len);
-	memcpy((void *) ss->str, (void *) str.str, sizeof(char) * ss->len);
+	char *file = NULL;
 
-	return ss;
-}
+	if (argc < 2) {
+		print_about();
 
-void sized_string_append(SizedString *s, char ch) {
-	s->len++;
-	s->str = realloc(s->str, sizeof(char) * (s->len));
-	s->str[s->len - 1] = ch;
-}
+		printf("\nError: Please specify a file\n");
 
-void free_sized_string(SizedString *s) {
-	free((void *) s->str);
-	free((void *) s);
-}
+		print_help();
 
-void print_sized_str(SizedString *s) {
-	SizedString *ss2 = sized_string_copy(*s);
-	sized_string_append(ss2, '\0');
-	printf("%s\n", ss2->str);
+		return 1;
+	}
 
-	free_sized_string(ss2);
+	{
+		int i;
+		for (i = 1; i < argc; i++) {
+			if (strcmp(argv[i], "--number") == 0 || strcmp(argv[i], "-n") == 0) {
+				ascii = 0;
+			} else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0) {
+				verbose = 1;
+			} else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+				help = 1;
+			} else {
+				file = argv[i];
+			}
+		}
+	}
+
+	if (help) {
+		print_about();
+		printf("\n");
+		print_help();
+		return 0;
+	}
+
+	if (file == NULL) {
+		print_about();
+
+		printf("\nError: Please specify a file\n");
+
+		print_help();
+
+		return 2;
+	}
+
+	SizedString *ss = read_to_string(file);
+
+	if (verbose) {
+		printf("Source Code: ");
+		print_sized_str(ss);
+	}
+
+	if (ascii) {
+		run_ascii(ss, verbose);
+	} else {
+		run(ss, verbose);
+	}
+
+	return 0;
 }
 
 SizedString *read_to_string(char *path) {
@@ -56,7 +82,7 @@ SizedString *read_to_string(char *path) {
 
 	// Open file and get first char
 	fp = fopen(path, "r");
-	ch = fgetc(fp);
+	ch = (char) fgetc(fp);
 
 	// Create a new SizedString to go brrr
 	SizedString *ss = NULL;
@@ -89,73 +115,18 @@ SizedString *read_to_string(char *path) {
 	return ss;
 }
 
-void run(SizedString *code) {
-	char mem[30000];
-	int ptr = 0;
-
-	JumpAddress* jmp = NULL;
-
-	int addr = 0;
-
-	while (addr < code->len) {
-		printf("%c", code->str[addr]);
-		int temp = 0;
-		JumpAddress* newJmp;
-
-		switch (code->str[addr]) {
-			case '+':
-				mem[ptr]++;
-				break;
-			case '-':
-				mem[ptr]--;
-				break;
-			case '>':
-				ptr++;
-				if (ptr > 29999) {
-					ptr = 0;
-				}
-				break;
-			case '<':
-				ptr--;
-				if (ptr < 0) {
-					ptr = 29999;
-				}
-				break;
-			case '.':
-				printf("%d\n", (int) mem[ptr]);
-				break;
-			case ',':
-				scanf("%X", &temp);
-				mem[addr] = (char) temp;
-				break;
-			case '[':
-				newJmp = malloc(sizeof(JumpAddress));
-				newJmp->addr = addr;
-				newJmp->prev_address = jmp;
-				jmp = newJmp;
-				break;
-			case ']':
-				if (mem[ptr] == '\0') {
-					newJmp = jmp->prev_address;
-					free(jmp);
-					jmp = newJmp;
-				} else {
-					addr = jmp->addr;
-				}
-				break;
-			default:
-				break;
-		}
-		addr++;
-	}
+void print_about(void) {
+	printf("Bf in rosetta C\n");
+	printf("A BrainFuck interpreter written in C, badly");
+	printf("Version: 1.0.0\n");
+	printf("Author: Nathan Hare<me@laspruca.nz>\n");
 }
 
-int main(void) {
-	SizedString *ss = read_to_string("example.bf");
-
-	print_sized_str(ss);
-
-	run(ss);
-
-	return 0;
+void print_help(void) {
+	printf("Usage: bf-c [opts] <file>\n");
+	printf("file: The file to be interpreted\n");
+	printf("opts:\n");
+	printf("\t--help, -h: prints the help message, this screen\n");
+	printf("\t--verbose, -v: enables verbose printing\n");
+	printf("\t--number, -n: interprets input and output as numbers, not ascii\n");
 }
