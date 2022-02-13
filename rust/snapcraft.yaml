@@ -1,9 +1,9 @@
 name: rust-bf
-version: 3.1.0
-summary: A super fast 128-bit brainfuck interpreter written in rust
+version: 4.0.0
+summary: A super fast 8bit brainfuck interpreter written in rust
 description: |
-  rust-bf is a command line program for running 128 bit brainfuck
-  programs at a speed that means you can overflow 128 Bits easily.
+  rust-bf is a command line program for running 8bit brainfuck
+  programs at a speed that means you can overflow 8bit easily.
 
   Use rust-bf --help to find out how to use the program.
 
