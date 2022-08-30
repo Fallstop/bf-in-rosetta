@@ -1,172 +1,114 @@
 const std = @import("std");
 const ArrayList = std.ArrayList;
+const bufferedReader = std.io.bufferedReader;
 const File = std.fs.File;
-const expect = std.testing.expect;
 
-pub const BfParseError = error{ ZeroLenSource, UnknownToken };
+pub const TokenList = ArrayList(BfToken);
+pub const BfTokenTag = enum { add, sub, lft, rgh, opn, cls, in, out };
 
-pub const BfEnum = union(enum) {
-    Add: u32,
-    Minus: u32,
-    Left: u32,
-    Right: u32,
-    Out,
-    In,
-    Open,
-    Close,
-    pub fn fromChar(char: u8) !BfEnum {
-        return switch (char) {
+pub const BfToken = union(BfTokenTag) {
+    add: u32,
+    sub: u32,
+    lft: u32,
+    rgh: u32,
+    opn,
+    cls,
+    in,
+    out,
+
+    pub fn fromChar(char: [1]u8) ?BfToken {
+        switch (char[0]) {
             '+' => {
-                .{ .Add = 1 };
+                return .{ .add = 1 };
             },
             '-' => {
-                .{ .Minus = 1 };
+                return .{ .sub = 1 };
             },
             '<' => {
-                .{ .Left = 1 };
+                return .{ .lft = 1 };
             },
             '>' => {
-                .{ .Right = 1 };
+                return .{ .rgh = 1 };
             },
             '.' => {
-                .{.Out};
+                return BfToken.out;
             },
             ',' => {
-                .{.In};
+                return BfToken.in;
             },
             '[' => {
-                .{.Open};
+                return BfToken.opn;
             },
             ']' => {
-                .{.Close};
+                return BfToken.cls;
             },
             else => {
-                BfParseError.UnknownToken;
+                return null;
             },
-        };
-    }
-
-    pub fn is(self: *const BfEnum, other: BfEnum) bool {
-        return switch (self) {
-            .Add => {
-                return switch (other) {
-                    .Add => true,
-                    else => false,
-                };
-            },
-            .Minus => {
-                return switch (other) {
-                    .Minus => true,
-                    else => false,
-                };
-            },
-            .Left => {
-                return switch (other) {
-                    .Left => true,
-                    else => false,
-                };
-            },
-            .Right => {
-                return switch (other) {
-                    .Right => true,
-                    else => false,
-                };
-            },
-            .Out => {
-                return switch (other) {
-                    .Out => true,
-                    else => false,
-                };
-            },
-            .In => {
-                return switch (other) {
-                    .In => true,
-                    else => false,
-                };
-            },
-            .Open => {
-                return switch (other) {
-                    .Open => true,
-                    else => false,
-                };
-            },
-            .Close => {
-                return switch (other) {
-                    .Close => true,
-                    else => false,
-                };
-            },
-        };
-    }
-
-    pub fn inc(self: *BfEnum) void {
-        switch (self) {
-            .Add | .Minus | .Left | .Right => |i| i += 1,
         }
     }
 
-    pub fn hasVal(self: *const BfEnum) bool {
-        return switch (self) {
-            .Add | .Minus | .Left | .Right => false,
-        };
+    pub fn inc(self: *BfToken) void {
+        switch (self.*) {
+            .add, .sub, .lft, .rgh => |*value| {
+                value.* += 1;
+            },
+            else => {},
+        }
+    }
+
+    pub fn hasVal(self: *const BfToken) bool {
+        switch (self.*) {
+            .add, .sub, .lft, .rgh => {
+                return true;
+            },
+            else => return false,
+        }
     }
 };
 
-pub fn parseFromFile(file: File, buffer: *ArrayList(BfEnum)) !void {
-    const fileReader = file.reader();
-    const buffReader = std.io.bufferedReader(fileReader);
-    const reader = buffReader.reader();
+pub fn parseBf(file: File, buffer: *TokenList) !void {
+    var fileReader = file.reader();
+    var buffReader = bufferedReader(fileReader);
+    var reader = buffReader.reader();
 
-    var char: [1]u8 = {};
+    var char: [1]u8 = undefined;
 
-    var prev: ?BfEnum = null;
+    var prev: ?BfToken = null;
 
-    while (try reader.read(*char) != 0) {
-        if (BfEnum.fromChar(char[0])) |value| {
-            if (!value.hasVal()) {
-                if (prev) |prevVal| {
-                    try buffer.append(prevVal);
+    while (try reader.read(&char) != 0) {
+        if (BfToken.fromChar(char)) |read| {
+            if (prev) |*prevToken| {
+                if (@as(BfTokenTag, prevToken.*) == @as(BfTokenTag, read)) {
+                    prevToken.inc();
+                } else {
+                    try buffer.append(prevToken.*);
+                    if (read.hasVal())
+                        prev = read;
                 }
-
-                try buffer.append(value);
-                prev = null;
+            } else if (read.hasVal()) {
+                prev = read;
             } else {
-                if (prev) |prevVal| {
-                    if (prevVal.is(value)) {
-                        prevVal.inc();
-                    } else {
-                        try buffer.append(value);
-                    }
-                }
-
-                prev = value;
+                prev = null;
             }
         }
     }
 
-    if (prev) |prevValue| {
-        try buffer.append(prevValue);
+    if (prev) |prevToken| {
+        try buffer.append(prevToken);
     }
 }
 
-test "testIs" {
-    try expect((BfEnum{ .Add = 1 }).is(BfEnum{ .Add = 1 }));
-    try expect((BfEnum{ .Minus = 1 }).is(BfEnum{ .Minus = 1 }));
-    try expect((BfEnum{.Out}).is(BfEnum{.Out}));
-    try expect((BfEnum{.In}).is(BfEnum{.In}));
-    try expect((BfEnum{ .Left = 1 }).is(BfEnum{ .Left = 1 }));
-    try expect((BfEnum{ .Right = 1 }).is(BfEnum{ .Right = 1 }));
-    try expect((BfEnum{.Open}).is(BfEnum{.Open}));
-    try expect((BfEnum{.Close}).is(BfEnum{.Close}));
-}
+test "parse file" {
+    var alloc = std.testing.allocator_instance;
 
-// test "parseVal" {
-//     try expect(BfEnum.fromChar('+') == BfEnum{ .Add = 1 });
-//     try expect(BfEnum.fromChar('-') == BfEnum{ .Minus = 1 });
-//     try expect(BfEnum.fromChar('.') == BfEnum{.Out});
-//     try expect(BfEnum.fromChar(',') == BfEnum{.In});
-//     try expect(BfEnum.fromChar('<') == BfEnum{ .Left = 1 });
-//     try expect(BfEnum.fromChar('>') == BfEnum{ .Right = 1 });
-//     try expect(BfEnum.fromChar('[') == BfEnum{.Open});
-//     try expect(BfEnum.fromChar(']') == BfEnum{.Close});
-// }
+    const tempFile = try std.fs.cwd().createFile("test.bf", .{ .mode = .read_write });
+    tempFile.writeAll("+++--[><<>]");
+
+    var buffer = TokenList.init(alloc);
+    defer buffer.deinit();
+
+    parseBf(tempFile, &buffer);
+
+    std.log.info("{any}", .{buffer});
+}
