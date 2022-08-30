@@ -2,6 +2,7 @@ const std = @import("std");
 const ArrayList = std.ArrayList;
 const bufferedReader = std.io.bufferedReader;
 const File = std.fs.File;
+const expect = std.testing.expect;
 
 pub const TokenList = ArrayList(BfToken);
 pub const BfTokenTag = enum { add, sub, lft, rgh, opn, cls, in, out };
@@ -65,6 +66,32 @@ pub const BfToken = union(BfTokenTag) {
             else => return false,
         }
     }
+
+    pub fn eql(self: *const BfToken, other: BfToken) bool {
+        if (@as(BfTokenTag, self.*) == @as(BfTokenTag, other)) {
+            if (self.hasVal()) {
+                switch (self.*) {
+                    .add, .sub, .lft, .rgh, .in => |selfVal| {
+                        switch (other) {
+                            .add, .sub, .lft, .rgh, .in => |otherVal| {
+                                return selfVal == otherVal;
+                            },
+                            else => {
+                                unreachable;
+                            },
+                        }
+                    },
+                    else => {
+                        unreachable;
+                    },
+                }
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
 };
 
 pub fn parseBf(file: File, buffer: *TokenList) !void {
@@ -100,15 +127,30 @@ pub fn parseBf(file: File, buffer: *TokenList) !void {
 }
 
 test "parse file" {
-    var alloc = std.testing.allocator_instance;
+    var alloc = std.testing.allocator;
 
-    const tempFile = try std.fs.cwd().createFile("test.bf", .{ .mode = .read_write });
-    tempFile.writeAll("+++--[><<>]");
+    const tempFile = try std.fs.cwd().createFile("test.bf", .{ .read = true });
+    try tempFile.writeAll("+++--[><<>]");
 
     var buffer = TokenList.init(alloc);
     defer buffer.deinit();
 
-    parseBf(tempFile, &buffer);
+    try parseBf(tempFile, &buffer);
+
+    var expected_buffer = TokenList.init(alloc);
+    defer buffer.deinit();
+
+    try expect(buffer.items.len == 7);
+
+    buffer[0].eql(BfToken{ .add = 3 });
+    buffer[1].eql(BfToken{ .sub = 2 });
+    buffer[2].eql(BfToken.opn);
+    buffer[3].eql(BfToken{ .rgh = 1 });
+    buffer[4].eql(BfToken{ .lft = 2 });
+    buffer[5].eql(BfToken{ .rgh = 1 });
+    buffer[6].eql(BfToken.cls);
+
+    try expect(std.mem.eql(@TypeOf(buffer.items), buffer.items, expected_buffer.items));
 
     std.log.info("{any}", .{buffer});
 }
