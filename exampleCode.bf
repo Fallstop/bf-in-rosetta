@@ -1,2 +1,2 @@
-This should produce fivanachi numbers
+This should produce fibonacci numbers
 ,-->+.>>>+.<<<<[->[->+>+<<]>>[-<<+>>]>[->+>+<<]>>[-<<+>>]<<<<[->>>>>+<<<<<]>>>[->>+<<]>>.<<<<<<[-]>>>[-<<<+>>>]>>>[-<<<+>>>]<<<<<<<]

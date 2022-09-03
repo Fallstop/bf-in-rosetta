@@ -4,10 +4,14 @@ const ArrayList = std.ArrayList;
 const cwd = std.fs.cwd;
 const GPA = std.heap.GeneralPurposeAllocator(.{});
 const File = std.fs.File;
+const expect = std.testing.expect;
 
-const bftoken = @import("./bftoken.zig");
-const parseBf = bftoken.parseBf;
-const TokenList = bftoken.TokenList;
+const bf = @import("./bf.zig");
+const tokens = bf.tokens;
+const parseBf = tokens.parseBf;
+const TokenList = tokens.TokenList;
+
+const run_code = bf.runner.run_code;
 
 pub fn main() !void {
     var gpa = GPA{};
@@ -34,9 +38,7 @@ pub fn main() !void {
     var source = TokenList.init(alloc);
     defer source.deinit();
 
-    log.debug("{any}", .{@TypeOf(source)});
+    try parseBf(file, &source, alloc);
 
-    try parseBf(file, &source);
-
-    log.info("{s}", .{last});
+    try run_code(source, alloc);
 }

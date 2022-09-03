@@ -71,9 +71,9 @@ pub const BfToken = union(BfTokenTag) {
         if (@as(BfTokenTag, self.*) == @as(BfTokenTag, other)) {
             if (self.hasVal()) {
                 switch (self.*) {
-                    .add, .sub, .lft, .rgh, .in => |selfVal| {
+                    .add, .sub, .lft, .rgh => |selfVal| {
                         switch (other) {
-                            .add, .sub, .lft, .rgh, .in => |otherVal| {
+                            .add, .sub, .lft, .rgh => |otherVal| {
                                 return selfVal == otherVal;
                             },
                             else => {
@@ -94,63 +94,46 @@ pub const BfToken = union(BfTokenTag) {
     }
 };
 
-pub fn parseBf(file: File, buffer: *TokenList) !void {
-    var fileReader = file.reader();
-    var buffReader = bufferedReader(fileReader);
-    var reader = buffReader.reader();
-
-    var char: [1]u8 = undefined;
-
+pub fn parseBf(file: File, buffer: *TokenList, allocator: std.mem.Allocator) !void {
+    const meta = try file.metadata();
+    const size = meta.size();
+    var reader = file.reader();
     var prev: ?BfToken = null;
 
-    while (try reader.read(&char) != 0) {
-        if (BfToken.fromChar(char)) |read| {
+    const fileBuffer = try reader.readAllAlloc(allocator, size);
+    defer allocator.destroy(fileBuffer.ptr);
+
+    std.log.info("{s}", .{fileBuffer});
+
+    for (fileBuffer) |char| {
+        if (BfToken.fromChar([1]u8{char})) |read| {
             if (prev) |*prevToken| {
                 if (@as(BfTokenTag, prevToken.*) == @as(BfTokenTag, read)) {
                     prevToken.inc();
                 } else {
                     try buffer.append(prevToken.*);
-                    if (read.hasVal())
+                    // std.log.debug("Adding token {any}", .{prevToken.*});
+                    if (read.hasVal()) {
                         prev = read;
+                    } else {
+                        try buffer.append(read);
+                        // std.log.debug("Adding token {any}", .{read});
+
+                        prev = null;
+                    }
                 }
             } else if (read.hasVal()) {
                 prev = read;
             } else {
                 prev = null;
+                try buffer.append(read);
+                // std.log.debug("Adding token {any}", .{read});
             }
         }
     }
 
     if (prev) |prevToken| {
         try buffer.append(prevToken);
+        // std.log.debug("Adding token {any}", .{prevToken});
     }
-}
-
-test "parse file" {
-    var alloc = std.testing.allocator;
-
-    const tempFile = try std.fs.cwd().createFile("test.bf", .{ .read = true });
-    try tempFile.writeAll("+++--[><<>]");
-
-    var buffer = TokenList.init(alloc);
-    defer buffer.deinit();
-
-    try parseBf(tempFile, &buffer);
-
-    var expected_buffer = TokenList.init(alloc);
-    defer buffer.deinit();
-
-    try expect(buffer.items.len == 7);
-
-    buffer[0].eql(BfToken{ .add = 3 });
-    buffer[1].eql(BfToken{ .sub = 2 });
-    buffer[2].eql(BfToken.opn);
-    buffer[3].eql(BfToken{ .rgh = 1 });
-    buffer[4].eql(BfToken{ .lft = 2 });
-    buffer[5].eql(BfToken{ .rgh = 1 });
-    buffer[6].eql(BfToken.cls);
-
-    try expect(std.mem.eql(@TypeOf(buffer.items), buffer.items, expected_buffer.items));
-
-    std.log.info("{any}", .{buffer});
 }
