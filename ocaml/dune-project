@@ -1,0 +1,26 @@
+(lang dune 3.9)
+
+(name bf_in_ocaml)
+
+(generate_opam_files true)
+
+(source
+ (github fallstop/bf-in-rosetta))
+
+(authors "Connor Hare")
+
+(maintainers "Connor Hare")
+
+(license MIT)
+
+(documentation https://url/to/documentation)
+
+(package
+ (name bf_in_ocaml)
+ (synopsis "A short synopsis")
+ (description "A longer description")
+ (depends bf_in_ocaml dune)
+ (tags
+  (topics "to describe" your project)))
+
+; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
