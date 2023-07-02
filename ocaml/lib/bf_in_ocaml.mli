@@ -6,7 +6,7 @@ val run :
   ('a -> unit) ->
   'a ->
   'a ->
-  char list * 'a list * int
+  char list * 'a array * int
 
-val run_char : string -> char list * char list * int
-val run_int : string -> char list * int list * int
+val run_char : string -> char list * char array * int
+val run_int : string -> char list * int array * int
