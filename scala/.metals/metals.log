@@ -1,0 +1,243 @@
+2022.12.23 00:29:34 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/laspruca/Dev/bf-in-rosetta/scalla/.metals/lsp.trace.json or /home/laspruca/.cache/metals/lsp.trace.json
+2022.12.23 00:29:34 INFO  logging to file /home/laspruca/Dev/bf-in-rosetta/scalla/.metals/metals.log
+2022.12.23 00:29:34 INFO  Started: Metals version 0.11.9 in workspace '/home/laspruca/Dev/bf-in-rosetta/scalla' for client Visual Studio Code 1.74.1.
+2022.12.23 00:29:41 INFO  time: initialize in 6.39s
+2022.12.23 00:29:43 WARN  Build server is not auto-connectable.
+Dec 23, 2022 12:29:43 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 3
+2022.12.23 00:29:43 WARN  no build target for: /home/laspruca/Dev/bf-in-rosetta/scalla/build.sbt
+2022.12.23 00:29:43 WARN  no build target for: /home/laspruca/Dev/bf-in-rosetta/scalla/src/main/scala/Main.scala
+Dec 23, 2022 12:29:43 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1
+2022.12.23 00:30:07 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/laspruca/Dev/bf-in-rosetta/scala/.metals/lsp.trace.json or /home/laspruca/.cache/metals/lsp.trace.json[0m
+2022.12.23 00:30:08 INFO  logging to file /home/laspruca/Dev/bf-in-rosetta/scala/.metals/metals.log[0m
+2022.12.23 00:30:08 INFO  Started: Metals version 0.11.9 in workspace '/home/laspruca/Dev/bf-in-rosetta/scala' for client Visual Studio Code 1.74.1.[0m
+2022.12.23 00:30:09 INFO  time: initialize in 0.97s[0m
+2022.12.23 00:30:11 WARN  Build server is not auto-connectable.[0m
+2022.12.23 00:30:11 WARN  no build target for: /home/laspruca/Dev/bf-in-rosetta/scala/build.sbt[0m
+2022.12.23 00:30:37 INFO  no build target found for /home/laspruca/Dev/bf-in-rosetta/scalla/build.sbt. Using presentation compiler with project's scala-library version: 3.2.0
+Dec 23, 2022 12:30:37 AM org.eclipse.lsp4j.jsonrpc.services.GenericEndpoint notify
+INFO: Unsupported notification method: $/setTrace
+Dec 23, 2022 12:30:37 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 8
+2022.12.23 00:30:37 INFO  shutting down Metals
+2022.12.23 00:30:39 ERROR text document: file:///home/laspruca/Dev/bf-in-rosetta/scalla/build.sbtjava.nio.file.NoSuchFileException: /home/laspruca/Dev/bf-in-rosetta/scalla/build.sbt
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:218)
+	at java.nio.file.Files.newByteChannel(Files.java:380)
+	at java.nio.file.Files.newByteChannel(Files.java:432)
+	at java.nio.file.Files.readAllBytes(Files.java:3288)
+	at scala.meta.internal.io.PlatformFileIO$.slurp(PlatformFileIO.scala:45)
+	at scala.meta.internal.io.FileIO$.slurp(FileIO.scala:24)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.$anonfun$textDocument$2(InteractiveSemanticdbs.scala:90)
+	at scala.Option.getOrElse(Option.scala:201)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.$anonfun$textDocument$1(InteractiveSemanticdbs.scala:90)
+	at java.util.HashMap.compute(HashMap.java:1316)
+	at java.util.Collections$SynchronizedMap.compute(Collections.java:2770)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.textDocument(InteractiveSemanticdbs.scala:89)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.textDocument(InteractiveSemanticdbs.scala:63)
+	at scala.meta.internal.metals.AggregateSemanticdbs.loop$1(AggregateSemanticdbs.scala:30)
+	at scala.meta.internal.metals.AggregateSemanticdbs.textDocument(AggregateSemanticdbs.scala:36)
+	at scala.meta.internal.metals.CodeLensProvider.findLenses(CodeLensProvider.scala:22)
+	at scala.meta.internal.metals.MetalsLanguageServer.$anonfun$codeLens$2(MetalsLanguageServer.scala:1744)
+	at scala.meta.internal.metals.TimerProvider.timedThunk(TimerProvider.scala:25)
+	at scala.meta.internal.metals.MetalsLanguageServer.$anonfun$codeLens$1(MetalsLanguageServer.scala:1742)
+	at scala.meta.internal.metals.CancelTokens$.$anonfun$apply$2(CancelTokens.scala:26)
+	at scala.concurrent.Future$.$anonfun$apply$1(Future.scala:678)
+	at scala.concurrent.impl.Promise$Transformation.run(Promise.scala:467)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.lang.Thread.run(Thread.java:833)
+
+2022.12.23 00:30:39 ERROR text document: file:///home/laspruca/Dev/bf-in-rosetta/scalla/build.sbtjava.nio.file.NoSuchFileException: /home/laspruca/Dev/bf-in-rosetta/scalla/build.sbt
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:218)
+	at java.nio.file.Files.newByteChannel(Files.java:380)
+	at java.nio.file.Files.newByteChannel(Files.java:432)
+	at java.nio.file.Files.readAllBytes(Files.java:3288)
+	at scala.meta.internal.io.PlatformFileIO$.slurp(PlatformFileIO.scala:45)
+	at scala.meta.internal.io.FileIO$.slurp(FileIO.scala:24)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.$anonfun$textDocument$2(InteractiveSemanticdbs.scala:90)
+	at scala.Option.getOrElse(Option.scala:201)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.$anonfun$textDocument$1(InteractiveSemanticdbs.scala:90)
+	at java.util.HashMap.compute(HashMap.java:1316)
+	at java.util.Collections$SynchronizedMap.compute(Collections.java:2770)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.textDocument(InteractiveSemanticdbs.scala:89)
+	at scala.meta.internal.metals.InteractiveSemanticdbs.textDocument(InteractiveSemanticdbs.scala:63)
+	at scala.meta.internal.metals.AggregateSemanticdbs.loop$1(AggregateSemanticdbs.scala:30)
+	at scala.meta.internal.metals.AggregateSemanticdbs.textDocument(AggregateSemanticdbs.scala:36)
+	at scala.meta.internal.metals.CodeLensProvider.findLenses(CodeLensProvider.scala:22)
+	at scala.meta.internal.metals.MetalsLanguageServer.$anonfun$codeLens$2(MetalsLanguageServer.scala:1744)
+	at scala.meta.internal.metals.TimerProvider.timedThunk(TimerProvider.scala:25)
+	at scala.meta.internal.metals.MetalsLanguageServer.$anonfun$codeLens$1(MetalsLanguageServer.scala:1742)
+	at scala.meta.internal.metals.CancelTokens$.$anonfun$apply$2(CancelTokens.scala:26)
+	at scala.concurrent.Future$.$anonfun$apply$1(Future.scala:678)
+	at scala.concurrent.impl.Promise$Transformation.run(Promise.scala:467)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.lang.Thread.run(Thread.java:833)
+
+2022.12.23 00:30:39 INFO  time: code lens generation in 1.09s
+2022.12.23 00:30:39 INFO  time: code lens generation in 1.09s
+java.util.concurrent.RejectedExecutionException: Task Future(<not completed>) rejected from java.util.concurrent.ThreadPoolExecutor@49f71d0[Shutting down, pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 251]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$AbortPolicy.rejectedExecution(ThreadPoolExecutor.java:2065)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.reject(ThreadPoolExecutor.java:833)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.execute(ThreadPoolExecutor.java:1365)
+	at scala.concurrent.impl.ExecutionContextImpl.execute(ExecutionContextImpl.scala:21)
+	at scala.concurrent.impl.Promise$Transformation.submitWithValue(Promise.scala:429)
+	at scala.concurrent.impl.Promise$DefaultPromise.submitWithValue(Promise.scala:338)
+	at scala.concurrent.impl.Promise$DefaultPromise.tryComplete0(Promise.scala:285)
+	at scala.concurrent.impl.Promise$Transformation.run(Promise.scala:504)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:833)
+2022.12.23 00:30:58 INFO  no build target found for /home/laspruca/Dev/bf-in-rosetta/scala/build.sbt. Using presentation compiler with project's scala-library version: 3.2.0[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  no build target for: /home/laspruca/Dev/bf-in-rosetta/scala/src/main/scala/Main.scala[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+Dec 23, 2022 12:30:59 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 10
+Dec 23, 2022 12:30:59 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 12
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+Dec 23, 2022 12:30:59 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 13
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+Dec 23, 2022 12:30:59 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 16
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 INFO  running '/usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64/bin/java -Djline.terminal=jline.UnsupportedTerminal -Dsbt.log.noformat=true -Dfile.encoding=UTF-8 -jar /tmp/metals8663020398667000252/sbt-launch.jar -Dbloop.export-jar-classifiers=sources bloopInstall'[0m
+2022.12.23 00:30:59 WARN  sql closed: insert into sbt_digest values (?, ?, ?);[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select build_target_uri from dependency_source where text_document_uri = ?;[0m
+2022.12.23 00:30:59 WARN  no build target for: /home/laspruca/Dev/bf-in-rosetta/scala/project/metals.sbt[0m
+2022.12.23 00:30:59 WARN  no build target for: /home/laspruca/Dev/bf-in-rosetta/scala/project/project/metals.sbt[0m
+2022.12.23 00:30:59 WARN  sql closed: select selected_server from chosen_build_server where md5 = ?;[0m
+2022.12.23 00:30:59 WARN  sql closed: select * from dismissed_notification where id = ? and when_expires > ? limit 1;[0m
+2022.12.23 00:30:59 WARN  sql closed: select md5, status, when_recorded from sbt_digest d order by d.when_recorded desc limit 1;[0m
+2022.12.23 00:30:59 WARN  sql closed: insert into sbt_digest values (?, ?, ?);[0m
+2022.12.23 00:31:00 INFO  [info] welcome to sbt 1.7.3 (Red Hat, Inc. Java 17.0.5)[0m
+2022.12.23 00:31:02 INFO  [info] loading settings for project scala-build-build from metals.sbt ...[0m
+2022.12.23 00:31:02 INFO  [info] loading project definition from /home/laspruca/Dev/bf-in-rosetta/scala/project/project[0m
+2022.12.23 00:31:04 INFO  time: code lens generation in 49s[0m
+2022.12.23 00:31:04 INFO  time: code lens generation in 4.89s[0m
+2022.12.23 00:31:04 INFO  time: code lens generation in 4.92s[0m
+2022.12.23 00:31:04 INFO  time: code lens generation in 4.96s[0m
+2022.12.23 00:31:07 INFO  [info] loading settings for project scala-build from metals.sbt ...[0m
+2022.12.23 00:31:07 INFO  [info] loading project definition from /home/laspruca/Dev/bf-in-rosetta/scala/project[0m
+2022.12.23 00:31:09 INFO  [success] Generated .bloop/scala-build.json[0m
+2022.12.23 00:31:09 INFO  [success] Total time: 2 s, completed 23/12/2022, 12:31:09 am[0m
+2022.12.23 00:31:10 INFO  [info] loading settings for project root from build.sbt ...[0m
+2022.12.23 00:31:10 INFO  [info] set current project to scala-bf (in build file:/home/laspruca/Dev/bf-in-rosetta/scala/)[0m
+2022.12.23 00:31:10 INFO  [success] Generated .bloop/root-test.json[0m
+2022.12.23 00:31:10 INFO  [success] Generated .bloop/root.json[0m
+2022.12.23 00:31:10 INFO  [success] Total time: 0 s, completed 23/12/2022, 12:31:11 am[0m
+2022.12.23 00:31:11 INFO  time: ran 'sbt bloopInstall' in 12s[0m
+2022.12.23 00:31:11 INFO  Attempting to connect to the build server...[0m
+2022.12.23 00:31:11 INFO  Setting up current java home /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64 in /home/laspruca/.bloop/bloop.json[0m
+2022.12.23 00:32:02 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/laspruca/Dev/bf-in-rosetta/scala/.metals/bsp.trace.json or /home/laspruca/.cache/metals/bsp.trace.json[0m
+2022.12.23 00:32:02 INFO  Attempting to connect to the build server...[0m
+2022.12.23 00:32:02 INFO  Bloop uses /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64 defined at /home/laspruca/.bloop/bloop.json[0m
+2022.12.23 00:32:02 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/laspruca/Dev/bf-in-rosetta/scala/project/.metals/bsp.trace.json or /home/laspruca/.cache/metals/bsp.trace.json[0m
+2022.12.23 00:32:18 INFO  time: Connected to build server in 1m6s[0m
+2022.12.23 00:32:18 INFO  Connected to Build server: Bloop v1.5.4[0m
+2022.12.23 00:32:18 INFO  time: Imported build in 0.28s[0m
+2022.12.23 00:32:42 WARN  Could not find java sources in /usr/lib/jvm/src.zip, /usr/lib/jvm/lib/src.zip, /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64/src.zip, /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64/lib/src.zip. Java symbols will not be available.[0m
+2022.12.23 00:32:45 WARN  Could not find java sources in /usr/lib/jvm/src.zip, /usr/lib/jvm/lib/src.zip, /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64/src.zip, /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64/lib/src.zip. Java symbols will not be available.[0m
+2022.12.23 00:32:45 WARN  Could not find java sources in /usr/lib/jvm/src.zip, /usr/lib/jvm/lib/src.zip, /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64/src.zip, /usr/lib/jvm/java-17-openjdk-17.0.5.0.8-1.fc37.x86_64/lib/src.zip. Java symbols will not be available.[0m
+2022.12.23 00:32:45 INFO  time: indexed workspace in 26s[0m
+2022.12.23 00:32:45 INFO  compiling root (1 scala source)[0m
+2022.12.23 00:32:49 INFO  time: compiled root in 4.07s[0m
+2022.12.23 00:33:53 INFO  compiling root (1 scala source)[0m
+2022.12.23 00:33:53 INFO  time: compiled root in 0.73s[0m
+Dec 23, 2022 12:34:00 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 118
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalafmt-core_2.13/3.5.3/scalafmt-core_2.13-3.5.3.pom
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalafmt-core_2.13/3.5.3/scalafmt-core_2.13-3.5.3.pom
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.5.5/scalameta_2.13-4.5.5.pom
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalafmt-sysops_2.13/3.5.3/scalafmt-sysops_2.13-3.5.3.pom
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalafmt-config_2.13/3.5.3/scalafmt-config_2.13-3.5.3.pom
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.5.5/scalameta_2.13-4.5.5.pom
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalafmt-config_2.13/3.5.3/scalafmt-config_2.13-3.5.3.pom
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalafmt-sysops_2.13/3.5.3/scalafmt-sysops_2.13-3.5.3.pom
+Downloading https://repo1.maven.org/maven2/org/scalameta/parsers_2.13/4.5.5/parsers_2.13-4.5.5.pom
+Downloaded https://repo1.maven.org/maven2/org/scalameta/parsers_2.13/4.5.5/parsers_2.13-4.5.5.pom
+Downloading https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.pom
+Downloading https://repo1.maven.org/maven2/org/scalameta/trees_2.13/4.5.5/trees_2.13-4.5.5.pom
+Downloaded https://repo1.maven.org/maven2/org/scalameta/trees_2.13/4.5.5/trees_2.13-4.5.5.pom
+Downloaded https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.pom
+Downloading https://repo1.maven.org/maven2/org/scalameta/common_2.13/4.5.5/common_2.13-4.5.5.pom
+Downloaded https://repo1.maven.org/maven2/org/scalameta/common_2.13/4.5.5/common_2.13-4.5.5.pom
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalafmt-sysops_2.13/3.5.3/scalafmt-sysops_2.13-3.5.3.jar
+Downloading https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar
+Downloading https://repo1.maven.org/maven2/org/scalameta/common_2.13/4.5.5/common_2.13-4.5.5.jar
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalafmt-config_2.13/3.5.3/scalafmt-config_2.13-3.5.3.jar
+Downloading https://repo1.maven.org/maven2/org/scalameta/parsers_2.13/4.5.5/parsers_2.13-4.5.5.jar
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalafmt-core_2.13/3.5.3/scalafmt-core_2.13-3.5.3.jar
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalafmt-sysops_2.13/3.5.3/scalafmt-sysops_2.13-3.5.3.jar
+Downloading https://repo1.maven.org/maven2/org/scalameta/trees_2.13/4.5.5/trees_2.13-4.5.5.jar
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalafmt-config_2.13/3.5.3/scalafmt-config_2.13-3.5.3.jar
+Downloading https://repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.5.5/scalameta_2.13-4.5.5.jar
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalafmt-core_2.13/3.5.3/scalafmt-core_2.13-3.5.3.jar
+Downloading https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar
+Downloaded https://repo1.maven.org/maven2/org/scalameta/parsers_2.13/4.5.5/parsers_2.13-4.5.5.jar
+Downloaded https://repo1.maven.org/maven2/org/scalameta/common_2.13/4.5.5/common_2.13-4.5.5.jar
+Downloaded https://repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.5.5/scalameta_2.13-4.5.5.jar
+Downloaded https://repo1.maven.org/maven2/org/scalameta/trees_2.13/4.5.5/trees_2.13-4.5.5.jar
+Downloaded https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar
+Downloaded https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 128
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 131
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 132
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 136
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 138
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 139
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 141
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 140
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 142
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 144
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 145
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 146
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 129
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 151
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 154
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 155
+Dec 23, 2022 12:34:20 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 158
+2022.12.23 00:34:20 INFO  compiling root (1 scala source)[0m
+2022.12.23 00:34:20 INFO  time: compiled root in 0.44s[0m
+2022.12.23 01:35:32 INFO  Shut down connection with build server.[0m
+2022.12.23 01:35:32 INFO  Shut down connection with build server.[0m

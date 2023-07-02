@@ -1,5 +1,5 @@
 rust/.*
-rust/target/*
+*/target/*
 csharp/csharp/bin
 csharp/csharp/obj
 csharp/.idea

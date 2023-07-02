@@ -1,4 +1,4 @@
 (executable
  (public_name bf)
  (name main)
- (libraries bf_in_ocaml))
+ (libraries bf_in_ocaml cmdliner))
