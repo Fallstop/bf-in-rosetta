@@ -1,18 +1,7 @@
-(* open Printf *)
-
 let expload_string str = List.init (String.length str) (String.get str)
 
 let run code inc dec i o zero init =
   let rec run2 (code, memory, pointer) =
-    (* print_string "Memory:";
-
-       for i = 0 to 20 do
-         printf " %i" (int_of_char (List.nth memory i))
-       done;
-
-       printf " Pointer %i Code length %i" pointer (List.length code);
-       (try printf " Current instruction %c\n" (List.hd code)
-        with _ -> print_endline ""); *)
     match code with
     | [] -> ([], memory, pointer)
     | '+' :: code ->
