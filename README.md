@@ -29,6 +29,7 @@ Brainfuck interpreter in every language. Because yes.
 - #### C
 - #### Lisp (Common Lisp)
 - #### OCaml
+- #### Zig
 
 ### In progress languages
 
@@ -42,6 +43,5 @@ Brainfuck interpreter in every language. Because yes.
 ## <b>THE EXAMPLE BF</b>
 
 Custom code based on the superior decimal output flavor of BF.
-
 
 dune exec bf -- ../helloWorld.bf
