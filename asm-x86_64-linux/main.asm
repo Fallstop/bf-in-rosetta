@@ -156,6 +156,7 @@ loop:
     je      print_mem
 
     cmp     al, ","
+    je      input
 
     cmp     al, ">"
     je      right
@@ -174,6 +175,18 @@ loop:
 
     cmp     al, "-"
     je      minus
+
+    jmp     next
+
+input:
+    mov     rax, 0
+    mov     rdi, 0
+    mov     rsi, outbuf
+    mov     rdx, 1
+    syscall
+
+    mov     al, [outbuf]
+    mov     [mem + r11], al
 
     jmp     next
 
@@ -215,7 +228,8 @@ close_brace:
     mov     al, [mem + r11]
     test    al, al
     jz      cont
-    mov     r10, [rsp]
+    pop     r10
+    push    r10
     jmp     next
 
 cont:
