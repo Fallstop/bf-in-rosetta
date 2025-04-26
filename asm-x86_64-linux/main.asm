@@ -7,226 +7,233 @@
     syscall
 %endmacro
 
+%macro here 0
+    push rax
+    print msg_here, msg_here_len
+    pop rax
+%endmacro
 
 global _start
 
 SECTION .data
-    invalid_digit       db "The digit "
-    invalid_digit_pos   db 0, " is invalid", 10
-    invalid_digit_len   equ $ - invalid_digit
+    msg_no_input            db "Please supply a source file", 10
+    msg_no_input_len        equ $ - msg_no_input
 
-    output_buffer_end   equ output_buffer + 1024
+    msg_couldnt_open        db "Could not open the requested file", 10
+    msg_couldnt_open_len    equ $ - msg_couldnt_open
 
-    ascii_mode          db 0xa
-    
+    msg_here                db "Here", 10
+    msg_here_len            equ $ - msg_here
+
+    msg_no_read             db "Could not read the file into memory", 10
+    msg_no_read_len         equ $ - msg_no_read
+
 SECTION .bss
-    input_buffer        resb 1024
-    output_buffer       resb 1025
-    file_path           resb 8
-
+    outbuf  resb 1
+    mem     resb 30_000
 
 SECTION .text
 
+
 _start:
-    pop r10
-    inc r10
-
-parse_args_loop:
-    dec     r10
-
-    cmp     r10, 0
-    je      parse_args_done
-
-    pop     rax
-    mov     r11, rax
-
-    call    cstr_len
-    print   r11, rax
-    print   ascii_mode, 1
-
-    cmp     r10, 0
-    je      parse_args_done
-
-    cmp     rax, 0
-    jmp     parse_args_loop
+    pop     r9
+    cmp     r9, 2
+    jl      no_input
+    pop     r9 ; Pop off executable name
+    pop     r9 ; Pop off source file name 
     
-parse_args_done:
+    mov     r15, mem ; So I can find mem in the debugger
+
+    ; Open the file 
+    mov     rax, 2
+    mov     rdi, r9
+    xor     rsi, rsi
+    syscall
+
+    cmp     rax, -1
+    ; Couldn't open the file
+    je      opennt
+    
+    mov     rdi, rax
+    call    main
+
+    mov     rdi, rax
     mov     rax, 60
+    syscall
+
+main:
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32
+
+    mov     [rbp - 8], rdi
+
+    call    get_size
+    mov     [rbp - 16], rax
+
+    ; mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
     mov     rdi, 0
+    mov     rsi, rax
+    mov     rdx, 0x1
+    mov     r10, 0x2
+    mov     r8, [rbp - 8]
+    mov     r9, 0
+
+    mov     rax, 9
     syscall
 
-; Find the length of a c string
-; Input:
-;   rax -> Pointer to start of string
-; Outpu:
-;   rax -> resulting length
-cstr_len:
-    xor     rcx, rcx
+    mov     [rbp - 24], rax
 
-cstr_len_loop:
-    mov     bl, [rax + rcx]
-    cmp     bl, 0
-    je      cstr_len_done
-    inc     rcx
-    jmp     cstr_len_loop
+    cmp     rax, -1
+    je      no_read
 
-cstr_len_done:
-    mov     rax, rcx
-    ret
+    mov     rax, 3
+    mov     rsi, [rbp - 8]
 
-; Print number will print a decimal number to the given file
-;   Input:
-;       rax - The numebr to print
-;       rdi - The file to write it too
-;   Output:
-;
-print_number:
-    ; qword [rsp + 2] -> number to print
-    ; qword [rsp + 10] -> file we want to print to
-    ; qword rdi -> Count
-    sub     rsp, 16
-    mov     [rsp], rdi
-    xor     rdi, rdi
+    mov     rdi, [rbp - 16]
+    mov     rsi, [rbp - 24]
+    call    exec
 
-print_loop_start:
-    xor     rdx, rdx
-    mov     rcx, 10
-    div     rcx
-    
-    ; RAX -> Rest of number
-    ; RDX -> Digit we want to add
-    ; output_buffer[rdi] = RDX + 0x30
-
-    mov     rcx, output_buffer_end
-    sub     rcx, rdi
-
-    mov     [rcx], dl 
-    add     [rcx], byte 0x30
-
-    inc     rdi
-
-    cmp     rax, 0
-    je      print_number_done
-    jmp     print_loop_start
-
-
-print_number_done:
-    ; Add newline character
-    mov     [output_buffer_end + 1], byte 10
-
-    ; Set our length
-    mov     rdx, rdi
-    inc     rdx
-
-    ; Set the pointer to the start of the input buffer
-    mov     r8, output_buffer_end
-    sub     r8, rdi
-    inc     r8
-    mov     rsi, r8
-
-    ; Setup the syscall
-    mov     rax, 1
-    mov     rdi, [rsp]
-    
-    syscall
-
-    add     rsp, 16
-    ret
-
-; Read number will read a decimal number for the specified file
-;   Input:
-;       rax - the file that you want to read from
-;   Output:
-;       rax - The read number
-read_number:
-    ; rbx -> output
-    ; cl  -> Temporary storage of the current character
-    ; rdx -> The digit multiplier
-    ; r8  -> The offset from input_buffer
-    
-    ; Read the bytes into a buffer
-    mov     rdi, rax ; Move the file pointer to the RSI register
     mov     rax, 0
-    mov     rsi, input_buffer
-    mov     rdx, 1024
-
-    syscall
-
-    xor     rdx, rdx
-    xor     rcx, rcx
-    xor     rbx, rbx
-
-    ; Get pointer to end of input
-    lea     r8, [input_buffer + rax]
-    dec     r8
-
-    ; Check for and skip new line
-    mov     cl, [r8]
-    cmp     cl, byte 10
-    jne     first_digit
-    dec     r8
-
-first_digit:
-    ; Return zero if the user did not input any value
-    cmp     r8, input_buffer
-    jl      read_num_done
-
-    ; Get the digit
-    mov     cl, [r8] 
-    dec     r8
-
-    ; Check for valid digit
-    cmp     cl, 0x30
-    jl      read_num_invalid_digit
-    cmp     cl, 0x39
-    jg      read_num_invalid_digit
-
-    ; Convert ASCII to digit
-    sub     cl, 0x30
-    mov     rbx, rcx
-    mov     rdx, 10
-
-read_num_loop:
-    ; Check to see if we have finished processing the buffer
-    cmp     r8, input_buffer
-    jl      read_num_done
-
-    ; Get the digit
-    mov     cl, [r8] 
-    dec     r8
-
-    ; Check for valid digit
-    cmp     cl, 0x30
-    jl      read_num_invalid_digit
-    cmp     cl, 0x39
-    jg      read_num_invalid_digit
-
-    ; Convert ASCII to digit
-    sub     cl, 0x30
-
-    mov     r9, rdx
-    ; Multiply by 10
-    mov     rax, rcx
-    mul     rdx
-
-    ; Store result
-    add     rbx, rax
-
-    ; Multiply the power by ten
-    mov     rax, r9 
-    mov     rdx, 10
-    mul     rdx
-    mov     rdx, rax
-
-    jmp     read_num_loop
-
-read_num_invalid_digit:
-    mov     [invalid_digit_pos], cl
-    print   invalid_digit, invalid_digit_len
-
-    jmp     read_number
-
-read_num_done:
-    mov     rax, rbx
+    leave
     ret
 
+no_read:
+    print msg_no_read, msg_no_read_len
+    mov     rax, 3
+    mov     rsi, [rbp - 8]
+
+    mov     rax, 1
+    leave
+    ret
+
+get_size:
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 144
+
+    mov     rax, 5
+    lea     rsi, [rbp - 144]
+    syscall
+
+    ; Get the file size
+    mov     rax, [rbp - 96]
+
+    leave
+    ret
+    
+no_input:
+    print   msg_no_input, msg_no_input_len
+
+    mov     rax, 60
+    mov     rdi, 1
+    syscall
+
+opennt:
+    print   msg_couldnt_open, msg_couldnt_open_len
+
+    mov     rax, 60
+    mov     rdi, 1
+    syscall
+
+
+; void exec(int len, char* ptr);
+exec:
+    push    rbp
+    mov     rbp, rsp
+
+    mov     r8, rdi ; len
+    mov     r9, rsi ; ptr
+    xor     r10, r10 ; code pointer
+    xor     r11, r11 ; cell pointer
+
+loop:
+    cmp     r10, r8
+    jge     done
+
+    mov     al, [r9 + r10] 
+    cmp     al, "."
+    je      print_mem
+
+    cmp     al, ","
+
+    cmp     al, ">"
+    je      right
+    
+    cmp     al, "<"
+    je      left
+
+    cmp     al, "["
+    je      open_brace
+
+    cmp     al, "]"
+    je      close_brace
+
+    cmp     al, "+"
+    je      plus
+
+    cmp     al, "-"
+    je      minus
+
+    jmp     next
+
+print_mem:
+    mov     al, [mem + r11]
+    mov     [outbuf], al
+
+    mov     rax, 1
+    mov     rdi, 1
+    mov     rsi, outbuf
+    mov     rdx, 1
+    syscall
+    jmp     next
+
+left:
+    sub     r11, 1
+    jc      reset_under
+    jmp     next
+
+reset_under:
+    mov     r11, 29_999
+    jmp     next
+
+right:
+    inc     r11
+    cmp     r11, 30_000
+    jge     reset_over
+    jmp     next
+
+reset_over:
+    xor     r11, r11
+    jmp     next
+
+open_brace:
+    push    r10
+    jmp     next
+
+close_brace:
+    mov     al, [mem + r11]
+    test    al, al
+    jz      cont
+    mov     r10, [rsp]
+    jmp     next
+
+cont:
+    pop     rax
+    jmp     next
+
+plus:
+    add     byte [mem + r11], 1
+    jmp     next
+
+minus:
+    sub     byte [mem + r11], 1
+    jmp     next
+
+next:
+    inc     r10
+    jmp     loop
+
+done:
+    leave
+    ret
