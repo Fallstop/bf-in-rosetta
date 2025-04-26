@@ -33,7 +33,7 @@ Brainfuck interpreter in every language. Because yes.
 
 ### In progress languages
 
-- #### Swift
+- #### Asm
 
 ### Languages that were abandoned for mental health reasons
 
