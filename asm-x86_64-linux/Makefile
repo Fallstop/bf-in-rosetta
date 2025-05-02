@@ -4,6 +4,9 @@ target/main: target/main.o
 target/main.o: main.asm
 	nasm -Fdwarf -f elf64 main.asm -o target/main.o
 
+.PHONY: all
+all: target/main
+
 .PHONY: run
 run: target/main
 	./target/main ../helloWorld.bf
@@ -15,4 +18,3 @@ run-fib: target/main
 .PHONY: debug
 debug: target/main
 	lldb ./target/main
-

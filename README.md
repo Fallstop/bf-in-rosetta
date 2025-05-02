@@ -30,10 +30,9 @@ Brainfuck interpreter in every language. Because yes.
 - #### Lisp (Common Lisp)
 - #### OCaml
 - #### Zig
+- #### Asm
 
 ### In progress languages
-
-- #### Asm
 
 ### Languages that were abandoned for mental health reasons
 

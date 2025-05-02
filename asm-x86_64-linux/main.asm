@@ -145,7 +145,7 @@ exec:
     mov     r8, rdi ; len
     mov     r9, rsi ; ptr
     xor     r10, r10 ; code pointer
-    xor     r11, r11 ; cell pointer
+    xor     r12, r12 ; cell pointer
 
 loop:
     cmp     r10, r8
@@ -186,12 +186,12 @@ input:
     syscall
 
     mov     al, [outbuf]
-    mov     [mem + r11], al
+    mov     [mem + r12], al
 
     jmp     next
 
 print_mem:
-    mov     al, [mem + r11]
+    mov     al, [mem + r12]
     mov     [outbuf], al
 
     mov     rax, 1
@@ -199,25 +199,26 @@ print_mem:
     mov     rsi, outbuf
     mov     rdx, 1
     syscall
+
     jmp     next
 
 left:
-    sub     r11, 1
+    sub     r12, 1
     jc      reset_under
     jmp     next
 
 reset_under:
-    mov     r11, 29_999
+    mov     r12, 29_999
     jmp     next
 
 right:
-    inc     r11
-    cmp     r11, 30_000
+    inc     r12
+    cmp     r12, 30_000
     jge     reset_over
     jmp     next
 
 reset_over:
-    xor     r11, r11
+    xor     r12, r12
     jmp     next
 
 open_brace:
@@ -225,7 +226,7 @@ open_brace:
     jmp     next
 
 close_brace:
-    mov     al, [mem + r11]
+    mov     al, [mem + r12]
     test    al, al
     jz      cont
     pop     r10
@@ -237,11 +238,11 @@ cont:
     jmp     next
 
 plus:
-    add     byte [mem + r11], 1
+    add     byte [mem + r12], 1
     jmp     next
 
 minus:
-    sub     byte [mem + r11], 1
+    sub     byte [mem + r12], 1
     jmp     next
 
 next:
