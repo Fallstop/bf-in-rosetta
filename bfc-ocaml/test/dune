@@ -1,3 +1,7 @@
 (test
  (name test_frontend)
  (libraries bfc_ocaml))
+
+(test
+ (name test_backend)
+ (libraries bfc_ocaml))

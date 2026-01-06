@@ -1,3 +1,5 @@
+open Bfc_ocaml.Common
+
 let test_script =
   "+++++ +++++             initialize counter (cell #0) to 10\n\
    [                       use loop to set the next four cells to 70/100/30/10\n\
