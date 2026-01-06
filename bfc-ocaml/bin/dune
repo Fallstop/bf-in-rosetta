@@ -1,0 +1,4 @@
+(executable
+ (public_name bfc)
+ (name main)
+ (libraries bfc_ocaml))
