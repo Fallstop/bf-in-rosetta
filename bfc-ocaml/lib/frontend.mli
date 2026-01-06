@@ -26,4 +26,3 @@ type operation =
   | CloneBlock of clone_block
 
 val get_operations : string -> operation list
-val source : string

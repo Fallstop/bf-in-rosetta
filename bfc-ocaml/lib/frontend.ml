@@ -126,16 +126,3 @@ let rec opt operations =
 let get_operations code =
   let exploded = List.init (String.length code) (String.get code) in
   get_next exploded Noop [] |> List.rev |> opt
-
-let file = "../helloWorld.bf"
-
-let source =
-  let ic = open_in file in
-  try
-    let s = really_input_string ic (in_channel_length ic) in
-    close_in ic;
-    s
-  with _ ->
-    close_in ic;
-    print_string "Oh fuck";
-    ""
