@@ -41,4 +41,3 @@ type generator = {
 }
 
 val op_to_string : operation -> string
-val test_script : string

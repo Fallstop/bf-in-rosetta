@@ -1,4 +1,4 @@
 (executable
  (public_name bfc)
  (name main)
- (libraries bfc_ocaml))
+ (libraries bfc_ocaml cmdliner))

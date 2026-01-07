@@ -45,7 +45,7 @@ let get_generator Common.Ascii =
      ; rax -> number to decrement by\n\
      right_by:\n\
     \    add     r8, rax\n\
-    \    test    r8, 30_000\n\
+    \    cmp     r8, 30_000\n\
     \    jge     reset_over\n\
     \    ret\n\
      reset_over:\n\
