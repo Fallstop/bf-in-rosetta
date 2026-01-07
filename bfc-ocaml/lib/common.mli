@@ -34,5 +34,9 @@ type generator = {
   header : string;
   in_fn : string;
   out_fn : string;
+  action_group_fn : action_group -> string;
+  clone_block_fn : clone_block -> string;
   footer : string;
 }
+
+val test_script : string
