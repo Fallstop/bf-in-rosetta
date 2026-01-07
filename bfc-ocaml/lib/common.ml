@@ -65,7 +65,7 @@ let test_script =
    > +++++ +++++           add 10 to cell #2\n\
    > +++                   add  3 to cell #3\n\
    > +                     add  1 to cell #4\n\
-   <<<< -      code            decrement counter (cell #0)\n\
+   <<<< -                  decrement counter (cell #0)\n\
    ]\n\
    > ++ .                  print 'H'\n\
    > + .                   print 'e'\n\

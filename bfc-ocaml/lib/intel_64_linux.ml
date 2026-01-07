@@ -32,7 +32,7 @@ let get_generator Common.Ascii =
      SECTION .data\n\
      SECTION .bss\n\
     \    outbuf  resb 1\n\
-    \    mem     resb 30_000\n\n\
+    \    memory  resb 30_000\n\n\
      SECTION .text\n\n\
      ; rax -> number to increment by\n\
      left_by:\n\
@@ -73,16 +73,37 @@ let get_generator Common.Ascii =
             go_next count
             ^ Format.sprintf
                 "\n\
-                \    mov     r15b, memory[r8]\n\
+                \    mov     r13b, memory[r8]\n\
                 \    add     r15b, %d\n\
                 \    mov     memory[r8], r15b\n"
                 curr
             ^ do_action rest 1
-      | [] -> go_next (ag.start - (Array.length ag.values - count)) ^ "\n"
+      | [] -> go_next (ag.current - (Array.length ag.values - count)) ^ "\n"
     in
     go_next ag.start ^ do_action (Array.to_list ag.values) 0 ^ "\n"
   in
-  let clone_block_fn (cb : clone_block) = go_next cb.start ^ "\n" in
+  let clone_block_fn (cb : clone_block) =
+    let rec do_action items count =
+      match items with
+      | curr :: rest ->
+          if curr == 0 then do_action rest (count + 1)
+          else
+            go_next count
+            ^ Format.sprintf
+                "\n\
+                \    mov     al, %d\n\
+                \    mul     r15b\n\
+                \    mov     r14b, memory[r8]\n\
+                \    add     r14b, al\n\
+                \    mov     memory[r8], r14b\n"
+                curr
+            ^ do_action rest 1
+      | [] -> go_next (cb.from - (List.length cb.values - count)) ^ "\n"
+    in
+    go_next (cb.start + cb.from)
+    ^ "\n    mov     r15b, memory[r8]\n    mov     byte memory[r8], 0\n"
+    ^ do_action cb.values 0 ^ "\n"
+  in
   let comment_fn str =
     (str |> String.split_on_char '\n'
     |> List.map (fun x -> "; " ^ x)
