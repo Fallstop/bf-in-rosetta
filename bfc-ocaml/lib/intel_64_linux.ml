@@ -73,7 +73,7 @@ let get_generator Common.Ascii =
             go_next count
             ^ Format.sprintf
                 "\n\
-                \    mov     r13b, memory[r8]\n\
+                \    mov     r15b, memory[r8]\n\
                 \    add     r15b, %d\n\
                 \    mov     memory[r8], r15b\n"
                 curr
