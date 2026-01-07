@@ -20,10 +20,10 @@ open Common
 let get_generator Common.Ascii =
   let go_next count =
     if count > 0 then
-      Format.sprintf "    mov     r8, %d\n    call    right_by"
+      Format.sprintf "    mov     rax, %d\n    call    right_by"
         (count mod 30_000)
     else if count < 0 then
-      Format.sprintf "    mov     r8, %d\n    call    left_by"
+      Format.sprintf "    mov     rax, %d\n    call    left_by"
         (count * -1 mod 30_000)
     else ""
   in
@@ -56,10 +56,9 @@ let get_generator Common.Ascii =
   let footer =
     "; Exit \n    mov     rax, 60\n    mov     rdi, 0\n    syscall"
   in
-  let in_fn = "; Input" in
+  let in_fn = "" in
   let out_fn =
-    "; Print\n\
-    \    mov     rax, 1  ; SYS_WRITE\n\
+    "    mov     rax, 1  ; SYS_WRITE\n\
     \    mov     rdi, 1  ; STDOUT\n\
     \    lea     rsi, memory[r8] ; Buffer that we want to write\n\
     \    mov     rdx, 1 ; Length of the buffer\n\n\
@@ -81,13 +80,13 @@ let get_generator Common.Ascii =
             ^ do_action rest 1
       | [] -> go_next (ag.start - (Array.length ag.values - count)) ^ "\n"
     in
-    "; ActionGroup\n" ^ go_next ag.start
-    ^ do_action (Array.to_list ag.values) 0
+    go_next ag.start ^ do_action (Array.to_list ag.values) 0 ^ "\n"
+  in
+  let clone_block_fn (cb : clone_block) = go_next cb.start ^ "\n" in
+  let comment_fn str =
+    (str |> String.split_on_char '\n'
+    |> List.map (fun x -> "; " ^ x)
+    |> String.concat "\n")
     ^ "\n"
   in
-  let clone_block_fn (cb : clone_block) =
-    "; CloneBlock\n" ^ go_next cb.start ^ "\n"
-  in
-
-  (* let clone_block_fn _ = "; Clone block " in *)
-  { header; action_group_fn; clone_block_fn; in_fn; out_fn; footer }
+  { header; action_group_fn; clone_block_fn; in_fn; out_fn; footer; comment_fn }

@@ -36,8 +36,27 @@ type generator = {
   out_fn : string;
   action_group_fn : action_group -> string;
   clone_block_fn : clone_block -> string;
+  comment_fn : string -> string;
   footer : string;
 }
+
+let op_to_string op =
+  let format_array (arr : int list) =
+    "[ " ^ (arr |> List.map Int.to_string |> String.concat " ; ") ^ " ]"
+  in
+  match op with
+  | Noop -> "Noop"
+  | In -> "In"
+  | Out -> "Out"
+  | LoopStart -> "LoopStart"
+  | LoopEnd -> "LoopEnd"
+  | ActionGroup ag ->
+      Format.sprintf "ActionGroup { start = %d; current = %d; values = %s; }"
+        ag.start ag.current
+        (ag.values |> Array.to_list |> format_array)
+  | CloneBlock cb ->
+      Format.sprintf "CloneBlock { start = %d; from = %d; values = %s; }"
+        cb.start cb.from (format_array cb.values)
 
 let test_script =
   "+++++ +++++             initialize counter (cell #0) to 10\n\
@@ -46,7 +65,7 @@ let test_script =
    > +++++ +++++           add 10 to cell #2\n\
    > +++                   add  3 to cell #3\n\
    > +                     add  1 to cell #4\n\
-   <<<< -                  decrement counter (cell #0)\n\
+   <<<< -      code            decrement counter (cell #0)\n\
    ]\n\
    > ++ .                  print 'H'\n\
    > + .                   print 'e'\n\

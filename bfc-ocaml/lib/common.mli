@@ -36,7 +36,9 @@ type generator = {
   out_fn : string;
   action_group_fn : action_group -> string;
   clone_block_fn : clone_block -> string;
+  comment_fn : string -> string;
   footer : string;
 }
 
+val op_to_string : operation -> string
 val test_script : string
