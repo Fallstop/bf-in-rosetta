@@ -20,8 +20,8 @@ type operation =
   | Noop
   | Out
   | In
-  | LoopStart
-  | LoopEnd
+  | LoopStart of int
+  | LoopEnd of int
   | ActionGroup of action_group
   | CloneBlock of clone_block
 

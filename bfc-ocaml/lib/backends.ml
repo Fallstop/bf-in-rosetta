@@ -16,8 +16,8 @@ let rec get_asm level generator code =
       | Out -> out_fn ^ "\n" ^ get_asm level generator rest
       | ActionGroup ag -> action_group_fn ag ^ get_asm level generator rest
       | CloneBlock cb -> clone_block_fn cb ^ get_asm level generator rest
-      | LoopStart -> get_asm level generator rest
-      | LoopEnd -> get_asm level generator rest
+      | LoopStart _ -> get_asm level generator rest
+      | LoopEnd _ -> get_asm level generator rest
       | Noop -> get_asm level generator rest)
   | [] -> ""
 

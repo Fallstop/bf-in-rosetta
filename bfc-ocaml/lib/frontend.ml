@@ -60,9 +60,10 @@ and get_out code current items = get_next code Out (current :: items)
 and get_in code current items = get_next code In (current :: items)
 
 and get_start_loop code current items =
-  get_next code LoopStart (current :: items)
+  get_next code (LoopStart 0) (current :: items)
 
-and get_end_loop code current items = get_next code LoopEnd (current :: items)
+and get_end_loop code current items =
+  get_next code (LoopEnd 0) (current :: items)
 
 and get_next code current items =
   match code with
@@ -85,7 +86,7 @@ let is_copy_ag (ag : action_group) =
 
 let rec opt operations =
   match operations with
-  | LoopStart :: ActionGroup ag :: LoopEnd :: rest
+  | LoopStart _ :: ActionGroup ag :: LoopEnd _ :: rest
     when ag.current + ag.start = 0 && is_copy_ag ag ->
       let start_point = Array.find_index (Repr.equal (-1)) ag.values in
       CloneBlock
@@ -98,6 +99,20 @@ let rec opt operations =
   | curr :: rest -> curr :: opt rest
   | [] -> []
 
+let rec match_braces levels max_level code =
+  let next_level = max_level + 1 in
+  match code with
+  | LoopStart _ :: rest ->
+      LoopStart next_level
+      :: match_braces (next_level :: levels) next_level rest
+  | LoopEnd _ :: rest -> (
+      match levels with
+      | current_level :: other_levels ->
+          LoopEnd current_level :: match_braces other_levels max_level rest
+      | [] -> assert false)
+  | x :: rest -> x :: match_braces levels max_level rest
+  | [] -> []
+
 let get_operations code =
   let exploded = List.init (String.length code) (String.get code) in
-  get_next exploded Noop [] |> List.rev |> opt
+  get_next exploded Noop [] |> List.rev |> opt |> match_braces [] 0

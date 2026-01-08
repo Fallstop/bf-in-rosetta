@@ -41,8 +41,8 @@ let operation_equal a b =
   | Noop, Noop -> true
   | Out, Out -> true
   | In, In -> true
-  | LoopStart, LoopStart -> true
-  | LoopEnd, LoopEnd -> true
+  | LoopStart a, LoopStart b -> a = b
+  | LoopEnd a, LoopEnd b -> a = b
   | ActionGroup ag1, ActionGroup ag2 -> action_group_equal ag1 ag2
   | CloneBlock cb1, CloneBlock cb2 -> clone_block_equal cb1 cb2
   | _ -> false
@@ -50,28 +50,8 @@ let operation_equal a b =
 let operations_equal ops1 ops2 =
   List.length ops1 = List.length ops2 && List.for_all2 operation_equal ops1 ops2
 
-(* Helper to convert operation to string for debugging *)
-let action_group_to_string (ag : action_group) =
-  Printf.sprintf "ActionGroup { start=%d; current=%d; values=[|%s|] }" ag.start
-    ag.current
-    (ag.values |> Array.to_list |> List.map string_of_int |> String.concat "; ")
-
-let clone_block_to_string (cb : clone_block) =
-  Printf.sprintf "CloneBlock { start=%d; from=%d; values=[%s] }" cb.start
-    cb.from
-    (cb.values |> List.map string_of_int |> String.concat "; ")
-
-let operation_to_string = function
-  | Noop -> "Noop"
-  | Out -> "Out"
-  | In -> "In"
-  | LoopStart -> "LoopStart"
-  | LoopEnd -> "LoopEnd"
-  | ActionGroup ag -> action_group_to_string ag
-  | CloneBlock cb -> clone_block_to_string cb
-
 let operations_to_string ops =
-  ops |> List.map operation_to_string |> String.concat "; "
+  ops |> List.map op_to_string |> String.concat "; "
 
 (* Expected operations for test_script:
    1. Noop (initial state)
@@ -159,14 +139,12 @@ let test_get_operations_produces_correct_values () =
       | e :: _, r :: _ when not (operation_equal e r) ->
           Printf.printf
             "First difference at index %d:\n  Expected: %s\n  Got: %s\n" i
-            (operation_to_string e) (operation_to_string r)
+            (op_to_string e) (op_to_string r)
       | _ :: exp', _ :: res' -> find_diff (i + 1) exp' res'
       | [], r :: _ ->
-          Printf.printf "Extra operation at index %d: %s\n" i
-            (operation_to_string r)
+          Printf.printf "Extra operation at index %d: %s\n" i (op_to_string r)
       | e :: _, [] ->
-          Printf.printf "Missing operation at index %d: %s\n" i
-            (operation_to_string e)
+          Printf.printf "Missing operation at index %d: %s\n" i (op_to_string e)
     in
     find_diff 0 expected_operations result;
     false

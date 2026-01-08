@@ -20,8 +20,8 @@ type operation =
   | Noop
   | Out
   | In
-  | LoopStart
-  | LoopEnd
+  | LoopStart of int
+  | LoopEnd of int
   | ActionGroup of action_group
   | CloneBlock of clone_block
 
@@ -48,8 +48,8 @@ let op_to_string op =
   | Noop -> "Noop"
   | In -> "In"
   | Out -> "Out"
-  | LoopStart -> "LoopStart"
-  | LoopEnd -> "LoopEnd"
+  | LoopStart a -> "LoopStart " ^ Int.to_string a
+  | LoopEnd a -> "LoopEnd" ^ Int.to_string a
   | ActionGroup ag ->
       Format.sprintf "ActionGroup { start = %d; current = %d; values = %s; }"
         ag.start ag.current
