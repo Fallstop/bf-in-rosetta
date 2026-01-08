@@ -258,6 +258,32 @@ let test_clone_block_optimization () =
     false
   end
 
+let test_brace_matching () =
+  let result = get_operations "[[][]][]" in
+  let expected =
+    [
+      Noop;
+      LoopStart 1;
+      LoopStart 2;
+      LoopEnd 2;
+      LoopStart 3;
+      LoopEnd 3;
+      LoopEnd 1;
+      LoopStart 4;
+      LoopEnd 4;
+    ]
+  in
+  if operations_equal result expected then begin
+    Printf.printf "PASS: Brace matching test\n";
+    true
+  end
+  else begin
+    Printf.printf "FAIL: Brace matching test\n";
+    Printf.printf "Expected: [%s]\n" (operations_to_string expected);
+    Printf.printf "Got:      [%s]\n" (operations_to_string result);
+    false
+  end
+
 let () =
   Printf.printf "Running frontend tests...\n\n";
   let tests =
@@ -271,6 +297,7 @@ let () =
       ("clone_block_optimization", test_clone_block_optimization);
       ("test_script_length", test_get_operations_produces_correct_length);
       ("test_script_values", test_get_operations_produces_correct_values);
+      ("test_brace_matching", test_brace_matching);
     ]
   in
   let results =

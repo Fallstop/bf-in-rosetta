@@ -49,7 +49,7 @@ let op_to_string op =
   | In -> "In"
   | Out -> "Out"
   | LoopStart a -> "LoopStart " ^ Int.to_string a
-  | LoopEnd a -> "LoopEnd" ^ Int.to_string a
+  | LoopEnd a -> "LoopEnd " ^ Int.to_string a
   | ActionGroup ag ->
       Format.sprintf "ActionGroup { start = %d; current = %d; values = %s; }"
         ag.start ag.current
