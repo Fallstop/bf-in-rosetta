@@ -56,7 +56,13 @@ let get_generator Common.Ascii =
   let footer =
     "; Exit \n    mov     rax, 60\n    mov     rdi, 0\n    syscall"
   in
-  let in_fn = "" in
+  let in_fn =
+    "    mov     rax, 0  ; SYS_WRITE\n\
+    \    mov     rdi, 1  ; STDOUT\n\
+    \    lea     rsi, memory[r8] ; Buffer that we want to write\n\
+    \    mov     rdx, 1 ; Length of the buffer\n\n\
+    \    syscall"
+  in
   let out_fn =
     "    mov     rax, 1  ; SYS_WRITE\n\
     \    mov     rdi, 1  ; STDOUT\n\
