@@ -36,6 +36,8 @@ type generator = {
   out_fn : string;
   action_group_fn : action_group -> string;
   clone_block_fn : clone_block -> string;
+  loop_start_fn : int -> string;
+  loop_end_fn : int -> string;
   comment_fn : string -> string;
   footer : string;
 }

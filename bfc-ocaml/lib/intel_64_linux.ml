@@ -110,4 +110,19 @@ let get_generator Common.Ascii =
     |> String.concat "\n")
     ^ "\n"
   in
-  { header; action_group_fn; clone_block_fn; in_fn; out_fn; footer; comment_fn }
+  let loop_start_fn n = "L" ^ Int.to_string n ^ ":\n" in
+  let loop_end_fn n =
+    "    mov     al, memory[r8]\n    test    al, al\n    jnz     L"
+    ^ Int.to_string n ^ "\n"
+  in
+  {
+    header;
+    action_group_fn;
+    clone_block_fn;
+    in_fn;
+    out_fn;
+    footer;
+    comment_fn;
+    loop_end_fn;
+    loop_start_fn;
+  }
