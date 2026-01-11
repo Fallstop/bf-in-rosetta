@@ -28,7 +28,7 @@ type operation =
 (* Compilation options *)
 
 type platform = X86_64
-type process_mode = Ascii
+type process_mode = Ascii | U8
 
 type generator = {
   header : string;

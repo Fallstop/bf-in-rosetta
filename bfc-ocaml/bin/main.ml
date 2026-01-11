@@ -24,7 +24,11 @@ let mode =
     let doc = "Run the interpperter in ASCII mode" in
     (Ascii, Arg.info [ "a"; "ascii" ] ~doc)
   in
-  Arg.(last & vflag_all [ Ascii ] [ ascii ])
+  let u8 =
+    let doc = "Run the interpperter in U8 mode" in
+    (U8, Arg.info [ "u"; "u8" ] ~doc)
+  in
+  Arg.(last & vflag_all [ Ascii ] [ ascii; u8 ])
 
 let cmd =
   let doc = "Pain and suffering" in
