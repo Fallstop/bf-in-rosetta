@@ -1,0 +1,16 @@
+#!/bin/sh
+[[ $1 == c ]] &&\
+    rm *.o main test_file &&
+    exit 0
+
+[[ $1 != t* ]] &&\
+    echo "wewo" &&\
+    dune exec bfc -- ../helloWorld.bf &&\
+    nasm -f elf64 -o main.o main.asm &&\
+    ld.lld -o main main.o &&\
+    [[ $1 == *r ]] && ./main
+
+[[ $1 == t* ]] &&\
+    nasm -Fdwarf -f elf64 -o test_file.o test_file.asm &&\
+    ld.lld -o test_file test_file.o &&\
+    [[ $1 == *r ]] && ./test_file
