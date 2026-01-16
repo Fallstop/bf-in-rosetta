@@ -21,14 +21,22 @@ let source =
 
 let mode =
   let ascii =
-    let doc = "Run the interpperter in ASCII mode" in
+    let doc = "Run the compiler in ASCII mode" in
     (Ascii, Arg.info [ "a"; "ascii" ] ~doc)
   in
-  let u8 =
-    let doc = "Run the interpperter in U8 mode" in
-    (U8, Arg.info [ "u"; "u8" ] ~doc)
+  let bits8 =
+    let doc = "Run the compiler in 8-bit mode" in
+    (Bits8, Arg.info [ "b8"; "bits8" ] ~doc)
   in
-  Arg.(last & vflag_all [ Ascii ] [ ascii; u8 ])
+  let bits32 =
+    let doc = "Run the compiler in 32-bit mode" in
+    (Bits32, Arg.info [ "b32"; "bits32" ] ~doc)
+  in
+  let bits64 =
+    let doc = "Run the compiler in 64-bit mode" in
+    (Bits64, Arg.info [ "b64"; "bits64" ] ~doc)
+  in
+  Arg.(last & vflag_all [ Ascii ] [ ascii; bits8; bits32; bits64 ])
 
 let cmd =
   let doc = "Pain and suffering" in

@@ -1,2 +1,3 @@
 (library
- (name bfc_ocaml))
+ (name bfc_ocaml)
+ (libraries ez_subst))

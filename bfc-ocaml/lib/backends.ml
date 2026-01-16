@@ -33,3 +33,4 @@ let rec get_asm level generator code =
 let compile platform process_mode code =
   let generator = get_compiler platform process_mode in
   generator.header ^ get_asm 0 generator code ^ generator.footer
+  |> generator.finalize

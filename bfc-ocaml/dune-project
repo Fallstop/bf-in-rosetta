@@ -19,7 +19,12 @@
  (name bfc-ocaml)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml)
+ (depends
+  ocaml
+  (cmdliner
+   (= 2.1.0))
+  (ez_subst
+   (= 0.2.1)))
  (tags
   ("add topics" "to describe" your project)))
 

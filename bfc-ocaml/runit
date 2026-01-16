@@ -4,8 +4,7 @@
     exit 0
 
 [[ $1 != t* ]] &&\
-    echo "wewo" &&\
-    dune exec bfc -- ../helloWorld.bf -u &&\
+    dune exec bfc -- ../exampleCode.bf --b32 &&\
     nasm -f elf64 -o main.o main.asm &&\
     ld.lld -o main main.o &&\
     [[ $1 == *r ]] && ./main

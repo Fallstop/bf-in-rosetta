@@ -28,7 +28,7 @@ type operation =
 (* Compilation options *)
 
 type platform = X86_64
-type process_mode = Ascii | U8
+type process_mode = Ascii | Bits8 | Bits32 | Bits64
 
 type generator = {
   header : string;
@@ -40,6 +40,7 @@ type generator = {
   loop_end_fn : int -> string;
   comment_fn : string -> string;
   footer : string;
+  finalize : string -> string;
 }
 
 val op_to_string : operation -> string

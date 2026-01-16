@@ -1,4 +1,5 @@
 open Common
+open Ez_subst.V2
 
 (*
   ! CAN NUKE
@@ -17,6 +18,69 @@ open Common
   r15 -> Temporary
 *)
 
+type registers = {
+  r15 : string;
+  r14 : string;
+  r13 : string;
+  rax : string;
+  rdx : string;
+  memory : string;
+  memory_size : string;
+  memory_sized : string;
+}
+
+let registers mode =
+  match mode with
+  | Bits8 | Ascii ->
+      {
+        r15 = "r15b";
+        r14 = "r14b";
+        r13 = "r13b";
+        rax = "al";
+        rdx = "dl";
+        memory = "memory[r8]";
+        memory_sized = "byte memory[r8]";
+        memory_size = "30_000";
+      }
+  | Bits32 ->
+      {
+        r15 = "r15d";
+        r14 = "r14d";
+        r13 = "r13d";
+        rax = "eax";
+        rdx = "edx";
+        memory = "memory[r8 * 4]";
+        memory_sized = "dword memory[r8]";
+        memory_size = "12_000";
+      }
+  | Bits64 ->
+      {
+        r15 = "r15";
+        r14 = "r14";
+        r13 = "r13";
+        rax = "rax";
+        rdx = "rdx";
+        memory = "memory[r8 * 8]";
+        memory_sized = "qword memory[r8]";
+        memory_size = "24_000";
+      }
+
+let apply_registers
+    { r15; r14; r13; rax; rdx; memory; memory_size; memory_sized } =
+  let replacements =
+    [
+      ("r15", r15);
+      ("r14", r14);
+      ("r13", r13);
+      ("rax", rax);
+      ("rdx", rdx);
+      ("memory", memory);
+      ("memory_size", memory_size);
+      ("memory_sized", memory_sized);
+    ]
+  in
+  EZ_SUBST.string_from_list ~default:"fuck" replacements
+
 let num_io_fns =
   "\n\
    print_int:\n\
@@ -24,7 +88,7 @@ let num_io_fns =
   \    ; r14 -> The current value\n\
   \    ; rsi -> 10\n\
   \    xor     rax, rax\n\
-  \    mov     al, memory[r8]\n\
+  \    mov     ${rax}, ${memory}\n\
   \    mov     r15, 18\n\
   \    mov     rsi, 10\n\n\
    print_int_sb_loop:\n\
@@ -95,7 +159,7 @@ let num_io_fns =
   \    jc      read_int_done\n\
   \    jmp     read_int_loop\n\n\
    read_int_done:\n\
-  \    mov memory[r8], r14b\n\
+  \    mov     ${memory}, ${r14}\n\
   \    ret"
 
 let go_next count =
@@ -134,9 +198,9 @@ let action_group_fn (ag : action_group) =
         else
           go_next count
           ^ Format.sprintf
-              "    mov     r15b, memory[r8]\n\
-              \    add     r15b, %d\n\
-              \    mov     memory[r8], r15b\n"
+              "    mov     ${r15}, ${memory}\n\
+              \    add     ${r15}, %d\n\
+              \    mov     ${memory}, ${r15}\n"
               curr
           ^ do_action rest 1
     | [] -> go_next (ag.current - (Array.length ag.values - count))
@@ -153,11 +217,11 @@ let clone_block_fn (cb : clone_block) =
         else
           go_next count
           ^ Format.sprintf
-              "    mov     al, %d\n\
-              \    mul     r15b\n\
-              \    mov     r14b, memory[r8]\n\
-              \    add     r14b, al\n\
-              \    mov     memory[r8], r14b\n"
+              "    mov     ${rax}, %d\n\
+              \    mul     ${r15}\n\
+              \    mov     ${r14}, ${memory}\n\
+              \    add     ${r14}, ${rax}\n\
+              \    mov     ${memory}, ${r14}\n"
               curr
           ^ do_action rest 1
     | [] ->
@@ -168,7 +232,7 @@ let clone_block_fn (cb : clone_block) =
         ^ go_next v
   in
   go_next (start + from)
-  ^ "    mov     r15b, memory[r8]\n    mov     byte memory[r8], 0\n"
+  ^ "    mov     ${r14}, ${memory}\n    mov     ${memory_sized}, 0\n"
   ^ go_next (from * -1)
   ^ do_action values 0
 
@@ -176,9 +240,12 @@ let loop_start_fn n = Format.sprintf "L%d:\n" n
 
 let loop_end_fn n =
   Format.sprintf
-    "    mov     al, memory[r8]\n    test    al, al\n    jnz     L%d\n" n
+    "    mov     ${rax}, ${memory}\n\
+    \    test    ${rax}, ${rax}\n\
+    \    jnz     L%d\n"
+    n
 
-let get_generator_ascii =
+let get_generator_ascii finalize =
   let header =
     "global _start\n\n\
      SECTION .data\n\
@@ -219,16 +286,17 @@ let get_generator_ascii =
     comment_fn;
     loop_end_fn;
     loop_start_fn;
+    finalize;
   }
 
-let get_generator_u8 =
+let get_generator_bits finalize =
   let header =
     "global _start\n\n\
      SECTION .data\n\
     \    msg     db \"Invaid input\", 10\n\
     \    buf     db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10\n\
      SECTION .bss\n\
-    \    memory  resb 30_000\n\n\
+    \    memory  resb ${memory_size}\n\n\
      SECTION .text\n\n" ^ num_io_fns ^ jump_functions
     ^ "_start:\n    xor     r8, r8\n"
   in
@@ -253,7 +321,9 @@ let get_generator_u8 =
     comment_fn;
     loop_end_fn;
     loop_start_fn;
+    finalize;
   }
 
 let get_generator pm =
-  match pm with Ascii -> get_generator_ascii | U8 -> get_generator_u8
+  (match pm with Ascii -> get_generator_ascii | _ -> get_generator_bits)
+    (registers pm |> apply_registers)
