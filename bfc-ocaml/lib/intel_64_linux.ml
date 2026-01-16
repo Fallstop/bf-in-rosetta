@@ -100,9 +100,10 @@ let num_io_fns =
 
 let go_next count =
   if count > 0 then
-    Format.sprintf "    mov     rax, %d\n    call    right_by" (count mod 30_000)
+    Format.sprintf "    mov     rax, %d\n    call    right_by\n"
+      (count mod 30_000)
   else if count < 0 then
-    Format.sprintf "    mov     rax, %d\n    call    left_by"
+    Format.sprintf "    mov     rax, %d\n    call    left_by\n"
       (count * -1 mod 30_000)
   else ""
 
@@ -133,17 +134,18 @@ let action_group_fn (ag : action_group) =
         else
           go_next count
           ^ Format.sprintf
-              "\n\
-              \    mov     r15b, memory[r8]\n\
+              "    mov     r15b, memory[r8]\n\
               \    add     r15b, %d\n\
               \    mov     memory[r8], r15b\n"
               curr
           ^ do_action rest 1
-    | [] -> go_next (ag.current - (Array.length ag.values - count)) ^ "\n"
+    | [] -> go_next (ag.current - (Array.length ag.values - count))
   in
-  go_next ag.start ^ do_action (Array.to_list ag.values) 0 ^ "\n"
+  do_action (Array.to_list ag.values) ag.start
 
 let clone_block_fn (cb : clone_block) =
+  let len = List.length cb.values in
+  let { from; start; values } = cb in
   let rec do_action items count =
     match items with
     | curr :: rest ->
@@ -151,25 +153,30 @@ let clone_block_fn (cb : clone_block) =
         else
           go_next count
           ^ Format.sprintf
-              "\n\
-              \    mov     al, %d\n\
+              "    mov     al, %d\n\
               \    mul     r15b\n\
               \    mov     r14b, memory[r8]\n\
               \    add     r14b, al\n\
               \    mov     memory[r8], r14b\n"
               curr
           ^ do_action rest 1
-    | [] -> go_next (cb.from - (List.length cb.values - count)) ^ "\n"
+    | [] ->
+        let v = len - count - start in
+        Format.sprintf
+          "; start = %d, count = %d, len = %d, len - count - start= %d\n" start
+          count len v
+        ^ go_next v
   in
-  go_next (cb.start + cb.from)
-  ^ "\n    mov     r15b, memory[r8]\n    mov     byte memory[r8], 0\n"
-  ^ do_action cb.values 0 ^ "\n"
+  go_next (start + from)
+  ^ "    mov     r15b, memory[r8]\n    mov     byte memory[r8], 0\n"
+  ^ go_next (from * -1)
+  ^ do_action values 0
 
-let loop_start_fn n = "L" ^ Int.to_string n ^ ":\n"
+let loop_start_fn n = Format.sprintf "L%d:\n" n
 
 let loop_end_fn n =
-  "    mov     al, memory[r8]\n    test    al, al\n    jnz     L"
-  ^ Int.to_string n ^ "\n"
+  Format.sprintf
+    "    mov     al, memory[r8]\n    test    al, al\n    jnz     L%d\n" n
 
 let get_generator_ascii =
   let header =
@@ -187,14 +194,14 @@ let get_generator_ascii =
     \    mov     rdi, 1  ; STDOUT\n\
     \    lea     rsi, memory[r8] ; Buffer that we want to write\n\
     \    mov     rdx, 1 ; Length of the buffer\n\n\
-    \    syscall"
+    \    syscall\n"
   in
   let out_fn =
     "    mov     rax, 1  ; SYS_WRITE\n\
     \    mov     rdi, 1  ; STDOUT\n\
     \    lea     rsi, memory[r8] ; Buffer that we want to write\n\
     \    mov     rdx, 1 ; Length of the buffer\n\n\
-    \    syscall"
+    \    syscall\n"
   in
   let comment_fn str =
     (str |> String.split_on_char '\n'
@@ -223,10 +230,10 @@ let get_generator_u8 =
      SECTION .bss\n\
     \    memory  resb 30_000\n\n\
      SECTION .text\n\n" ^ num_io_fns ^ jump_functions
-    ^ "_start:\n    xor     r8, r8"
+    ^ "_start:\n    xor     r8, r8\n"
   in
   let footer =
-    "; Exit \n    mov     rax, 60\n    mov     rdi, 0\n    syscall"
+    "; Exit \n    mov     rax, 60\n    mov     rdi, 0\n    syscall\n"
   in
   let in_fn = "    call    read_int\n" in
   let out_fn = "    call    print_int\n" in

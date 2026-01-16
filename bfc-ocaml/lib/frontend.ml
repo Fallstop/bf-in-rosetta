@@ -93,7 +93,7 @@ let rec opt operations =
         {
           values = ag.values |> Array.map (max 0) |> Array.to_list;
           from = Option.get start_point;
-          start = ag.current;
+          start = ag.start;
         }
       :: opt rest
   | curr :: rest -> curr :: opt rest

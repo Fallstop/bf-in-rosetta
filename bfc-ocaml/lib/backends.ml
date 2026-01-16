@@ -21,8 +21,8 @@ let rec get_asm level generator code =
       comment_fn (op_to_string inner)
       ^
       match inner with
-      | In -> in_fn ^ "\n" ^ get_asm level generator rest
-      | Out -> out_fn ^ "\n" ^ get_asm level generator rest
+      | In -> in_fn ^ get_asm level generator rest
+      | Out -> out_fn ^ get_asm level generator rest
       | ActionGroup ag -> action_group_fn ag ^ get_asm level generator rest
       | CloneBlock cb -> clone_block_fn cb ^ get_asm level generator rest
       | LoopStart n -> loop_start_fn n ^ get_asm level generator rest
