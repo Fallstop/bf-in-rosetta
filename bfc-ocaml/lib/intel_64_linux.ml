@@ -225,7 +225,7 @@ let clone_block_fn (cb : clone_block) =
               curr
           ^ do_action rest 1
     | [] ->
-        let v = -1 * (len + cb.start - 1) in
+        let v = (-1 * start) - (len - count) in
         Format.sprintf
           "; start = %d, count = %d, len = %d, len - count - start= %d\n" start
           count len v
