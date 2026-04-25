@@ -232,7 +232,7 @@ let clone_block_fn (cb : clone_block) =
         ^ go_next v
   in
   go_next (start + from)
-  ^ "    mov     ${r14}, ${memory}\n    mov     ${memory_sized}, 0\n"
+  ^ "    mov     ${r15}, ${memory}\n    mov     ${memory_sized}, 0\n"
   ^ go_next (from * -1)
   ^ do_action values 0
 
