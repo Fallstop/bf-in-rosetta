@@ -29,6 +29,7 @@ Brainfuck interpreter in every language. Because yes.
 - #### C
 - #### Lisp (Common Lisp)
 - #### OCaml
+  This includes both an interperter (in `ocaml`), and a compiler (`bfc-ocaml`). Currently supports x86_64 linux.
 - #### Zig
 - #### Asm
 
